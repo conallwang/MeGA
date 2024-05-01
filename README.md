@@ -2,8 +2,8 @@
 The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity Rendering and Head Editing](insert)"
 
 <p align="center">
-<a href="insert"><img src="https://img.shields.io/badge/Arxiv-2403.10050-B31B1B.svg"></a>
-<a href="insert"><img src="https://img.shields.io/badge/Project-Page-blue"></a>
+<a href="https://arxiv.org/abs/2404.19026"><img src="https://img.shields.io/badge/Arxiv-2404.19026-B31B1B.svg"></a>
+<a href="https://conallwang.github.io/MeGA_Pages/"><img src="https://img.shields.io/badge/Project-Page-blue"></a>
 </p>
 
 ## :mega: Updates
@@ -22,7 +22,8 @@ Creating high-fidelity head avatars from multi-view videos is a core issue for m
 
 ## TODO
 
-- [ ] Release the demo page and more video results.
+- [x] Release the project page
+- [ ] Add more results to the project page
 - [ ] Release the code. 
 
 ## Citation
