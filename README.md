@@ -8,6 +8,7 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 
 ## :mega: Updates
 
+[06/5/2024] Add more results to the project page.
 [28/4/2024] The official repo is initialized.
 
 ## Abstract
@@ -23,13 +24,18 @@ Creating high-fidelity head avatars from multi-view videos is a core issue for m
 ## TODO
 
 - [x] Release the project page
-- [ ] Add more results to the project page
+- [x] Add more results to the project page
 - [ ] Release the code. 
 
 ## Citation
 
 If you find this code useful for your research, please consider citing:
 ```
-
+@article{wang2024mega,
+  title={MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity Rendering and Head Editing},
+  author={Wang, Cong and Kang, Di and Sun, He-Yi and Qian, Shen-Han and Wang, Zi-Xuan and Bao, Linchao and Zhang, Song-Hai},
+  journal={arXiv preprint arXiv:2404.19026},
+  year={2024}
+}
 ```
 
