@@ -1,0 +1,138 @@
+# Data
+data.root: '/apdcephfs_cq2/share_1467498/datasets/nersemble/preprocess/218/UNION10_218_EMO1234EXP234589_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine'
+data.canonical_flame_path: '/apdcephfs_cq2/share_1467498/datasets/nersemble/preprocess/218/218_EMO-1_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine/flame_param/00000.npz'
+data.per_gpu_batch_size: 16
+data.num_workers: 8
+data.load_images: False
+data.img_w: 550
+data.img_h: 802
+
+# Training
+training.enc.mode: texture
+training.enable_densify: True
+training.tex_size: 1024
+training.tex_ch: 4
+
+training.gpus: "0"
+training.learning_rate: 0.001
+training.step:
+- 
+training.visual_interval: 200
+training.eval_interval: 5000
+training.epochs: 100
+training.pretrained_checkpoint_path: null
+training.pe: 'LPE'
+training.pe.num_freqs: 8
+training.pe.log_sampling: True
+training.pe.include_input: True
+
+training.lambda_update_list:
+- 
+# general
+training.lambda_rgb: 1.0
+training.lambda_ssim: 0.2
+training.lambda_lpips: 0.0
+
+# hair
+training.lambda_rgb.hair: 1.0
+training.lambda_silh.hair: 0.2
+training.lambda_silh.solid_hair: 0.1
+
+training.lambda_rotation: 1.0
+training.lambda_scaling: 1.0
+training.lambda_aiap.xyz: 5.0
+training.lambda_aiap.cov: 100.0
+
+# head
+training.lambda_rgb.head: 1.0
+training.lambda_depth.head: 1.0
+training.lambda_normal.head: 2.0
+training.lambda_mesh.laplacian: 100.0
+training.lambda_mesh.normal: 0.1
+training.lambda_mesh.edges: 500.0
+training.lambda_mesh.verts_scale: 0.0
+
+training.depth_thres: 5
+
+# Stages Control
+training.stages:
+- head
+training.stages_epoch:
+- 
+training.head_geo_stage_loss:
+- head_geo
+training.head_stage_loss:
+- head
+training.hair_stage_loss:
+- hair
+- general
+training.full_stage_loss:
+- head
+- hair
+- general
+
+# FLAME
+flame.subdivision: 1
+flame.subdivision.mouth: 0
+flame.add_teeth: True
+flame.model_path: "/apdcephfs_cq3/share_1467498/datasets/face-data/H3Avatar/flame2023/flame2023.pkl"
+flame.lmk_embedding_path: "/apdcephfs_cq3/share_1467498/datasets/face-data/H3Avatar/flame2023/landmark_embedding_with_eyes.npy"
+flame.parts_path: "/apdcephfs_cq3/share_1467498/datasets/face-data/H3Avatar/flame/FLAME_masks_mouth.pkl"
+flame.ignore_faces: "/apdcephfs_cq3/share_1467498/datasets/face-data/H3Avatar/flame/lower_neck_bottom_face_idcs.npy"
+flame.n_shape: 300
+flame.n_expr: 100
+flame.n_pose: 15  # full pose
+
+# FLAME Offsets
+flame.enable_offsets: True
+flame.move_eyes: False
+flame.offsets_ignore_parts:
+- 
+
+# FLAME texture
+flame.xyz_cond: False
+
+# Gaussian
+gs.pretrain: null
+gs.sh_degree: 3
+gs.init_pts: "/apdcephfs_cq2/share_1467498/datasets/nersemble/preprocess/302/init_pts_150000.npy"
+gs.percent_dense: 0.002
+gs.position_lr_init: 0.00016
+gs.position_lr_final: 0.0000016
+gs.position_lr_delay_mult: 0.01
+gs.position_lr_max_steps: 30000
+gs.feature_lr: 0.0025
+gs.opacity_lr: 0.05
+gs.scaling_lr: 0.005
+gs.rotation_lr: 0.001
+
+gs.upSH: 1000
+gs.densify_from_iter: 500
+gs.densify_until_iter: 15000
+gs.densification_interval: 200
+gs.opacity_reset_interval: 3000
+gs.densify_grad_threshold: 0.0002
+gs.enable_reset: False
+gs.split_inteval: 100
+gs.split_rate_threshold: 2
+
+gs.deform_weightnorm: False
+gs.deform_layers:
+- 128
+- 64
+gs.deform_lr: 0.001
+gs.pe.num_freqs: 4
+gs.deform_attr:
+- xyz
+- rotation
+- scaling
+
+gs.enable_aiap: False
+gs.K: 5
+
+# Pipe
+pipe.convert_SHs_python: False
+pipe.compute_cov3D_python: False
+pipe.debug: False
+pipe.hardfuse: False
+pipe.neutral_hair: False
