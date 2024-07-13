@@ -1,9 +1,11 @@
 #!/bin/bash
 
-WORKSPACE='/home/share/wangcong/checkpoint/MeGA/0701/'
-VERSION=train_306_b16_MeGA
+export CUDA_VISIBLE_DEVICES=2
 
-DEFAULT_PARAMS=./configs/nersemble/306/full.yaml
+WORKSPACE='/home/exp/conallwang_works/checkpoints/MeGA/0712/'
+VERSION=train_306_b8_MeGA_neutralhair
+
+DEFAULT_PARAMS=./configs/nersemble/306/neutral_hair.yaml
 
 python train.py \
     --config_path $DEFAULT_PARAMS \

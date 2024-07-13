@@ -297,8 +297,8 @@ class Trainer:
 
         # uv --> mesh vertices, barycentric
         # TODO: external settings
-        self.uv2verts_ids = np.load("/home/wangcong/workspace/tencent/ceph/face-data/H3Avatar/unwrap_uv_idx_v_idx.npy")
-        self.uv2verts_bw = np.load("/home/wangcong/workspace/tencent/ceph/face-data/H3Avatar/unwrap_uv_idx_bw.npy")
+        self.uv2verts_ids = np.load("/home/exp/conallwang_works/face-data/H3Avatar/unwrap_uv_idx_v_idx.npy")
+        self.uv2verts_bw = np.load("/home/exp/conallwang_works/face-data/H3Avatar/unwrap_uv_idx_bw.npy")
 
     def _init_losses(self):
         # TODO: check unuseful losses
