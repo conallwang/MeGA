@@ -10,8 +10,8 @@ from diff_gauss import GaussianRasterizationSettings, GaussianRasterizer
 from pytorch3d.ops.knn import knn_points
 from torch.autograd import Variable
 
-from networks.gs.gaussian_model import GaussianModel
-from networks.gs.gaussian_utils import eval_sh
+from networks.gshair.gs.gaussian_model import GaussianModel
+from networks.gshair.gs.gaussian_utils import eval_sh
 
 
 def render_list(cfg, viewpoint_cameras, pcs, bg_color, scaling_modifier=1.0, override_color=None):
@@ -598,20 +598,25 @@ def positional_encoding(tensor, num_encoding_functions=6, include_input=True, lo
         return torch.cat(encoding, dim=1)
 
 
-def params_with_lr(params_list, lr, label="hair"):
+def params_with_lr(params_list, lr, label=""):
     """add 'label' and 'lr' to params
 
     Args:
         params_list (_type_): params list
         lr (_type_): either float or list (with the same length as params_list)
     """
+    if label is None:
+        label = ""
+    if len(label) > 0:
+        label = label + "."
+
     params_lr_list = []
     if isinstance(lr, float):
         for i, param in enumerate(params_list):
-            params_lr_list.append({"params": [param[1]], "lr": lr, "name": label + "." + param[0]})
+            params_lr_list.append({"params": [param[1]], "lr": lr, "name": label + param[0]})
     elif len(lr) > 1 and len(lr) == len(params_list):
         for i, param in enumerate(params_list):
-            params_lr_list.append({"params": [param[1]], "lr": lr[i], "name": label + "." + param[0]})
+            params_lr_list.append({"params": [param[1]], "lr": lr[i], "name": label + param[0]})
     return params_lr_list
 
 
@@ -637,7 +642,7 @@ def estimate_rigid(pts1, pts2):
     return res
 
 
-def restore_model(cfg, model_path, models, optimizer, logger):
+def restore_model(model_path, hairwrapper, facewrapper, optimizer, logger):
     """Restore checkpoint
 
     Args:
@@ -652,6 +657,8 @@ def restore_model(cfg, model_path, models, optimizer, logger):
         return 1
 
     assert os.path.exists(model_path), "Model %s does not exist!"
+
+    logger.info("Loading ckpts from {} ...".format(model_path))
     state_dict = torch.load(model_path, map_location=lambda storage, loc: storage.cpu())
 
     current_epoch = state_dict["epoch"] if "epoch" in state_dict else 1
@@ -660,31 +667,8 @@ def restore_model(cfg, model_path, models, optimizer, logger):
     stage = "joint" if stage == "hair" else stage
     stage_step = state_dict["stage_step"] if "stage_step" in state_dict else 0
 
-    for key, model in models.items():
-        if key not in state_dict:
-            continue
-
-        _state_dict = {
-            k.replace("module.", "") if k.startswith("module.") else k: v for k, v in state_dict[key].items()
-        }
-        # Check if there is key mismatch:
-        missing_in_model = set(_state_dict.keys()) - set(model.state_dict().keys())
-        missing_in_ckp = set(model.state_dict().keys()) - set(_state_dict.keys())
-
-        if logger:
-            logger.info("[MODEL_RESTORE] missing keys in %s checkpoint: %s" % (key, missing_in_ckp))
-            logger.info("[MODEL_RESTORE] missing keys in %s model: %s" % (key, missing_in_model))
-
-        try:
-            if key == "canonical_gs":
-                model.load_state_dict(_state_dict, optimizer, global_step, cfg["gs.upSH"])
-            else:
-                model.load_state_dict(_state_dict, strict=False)
-        except:
-            if logger:
-                logger.info("[warning] {} weights are not loaded.".format(key))
-            else:
-                print("[warning] {} weights are not loaded.".format(key))
+    hairwrapper.restore_models(state_dict, optimizer, global_step, logger)
+    facewrapper.restore_models(state_dict, logger)
 
     return current_epoch, global_step, stage, stage_step
 

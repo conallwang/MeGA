@@ -14,7 +14,8 @@ from torch.utils.tensorboard import SummaryWriter
 
 from dataset.dome import DomeData
 from dataset.nersemble import NeRSembleData
-from trainer import Trainer
+from joint_trainer import JointTrainer
+from hair_trainer import HairTrainer
 from utils import seed_everything
 
 parser = argparse.ArgumentParser(description="Training")
@@ -113,6 +114,7 @@ def train():
     config["datatype"] = args.config_path.split("/")[-3]
     train_loader, val_loader, radius, all_flame_params = get_dataset(logger, config["datatype"])
 
+    Trainer = HairTrainer if config["pipe.neutral_hair"] else JointTrainer
     trainer = Trainer(config, logger, radius)
     trainer.init_all_flame_params(all_flame_params)
     trainer.train(train_loader, val_loader, show_time=args.time)

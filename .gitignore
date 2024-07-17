@@ -1,7 +1,7 @@
 .vscode
 taiji_task*
 tools
-tmp
+tmp_res
 outputs
 create_taiji.sh
 

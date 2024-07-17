@@ -17,7 +17,7 @@ from tqdm import tqdm
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from dataset.nersemble import NeRSembleData
-from trainer import Trainer
+from joint_trainer import Trainer
 from utils import CUDA_Timer, seed_everything, ssim, visDepthMap, visimg
 
 parser = argparse.ArgumentParser("EVALUATE")

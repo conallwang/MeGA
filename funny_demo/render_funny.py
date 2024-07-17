@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from trainer import Trainer
+from joint_trainer import Trainer
 from utils import CUDA_Timer, fov2focal, seed_everything, visimg
 
 parser = argparse.ArgumentParser("RENDER FUNNY")

@@ -2,7 +2,7 @@ bald: false
 data.canonical_flame_path: /home/exp/conallwang_works/nersemble/preprocess/306/306_EMO-3_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine/flame_param/00000.npz
 data.img_h: 802
 data.img_w: 550
-data.load_images: false
+data.load_images: true
 data.num_workers: 8
 data.per_gpu_batch_size: 8
 data.root: /home/exp/conallwang_works/nersemble/preprocess/306/UNION10_306_EMO1234EXP234589_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine
@@ -54,8 +54,6 @@ gs.pretrain: null
 gs.rotation_lr: 0.001
 gs.scaling_lr: 0.005
 gs.sh_degree: 3
-gs.split_inteval: 100
-gs.split_rate_threshold: 2
 gs.upSH: 1000
 pipe.compute_cov3D_python: false
 pipe.convert_SHs_python: false
@@ -71,23 +69,16 @@ training.head_stage_loss:
 - head
 training.joint_stage_loss:
 - hair
-- general
-training.lambda_aiap.cov: 100000.0
-training.lambda_aiap.xyz: 1000.0
+- joint
 training.lambda_depth.head: 1.0
-training.lambda_features_dc: 10.0
-training.lambda_lpips: 0.0
 training.lambda_mesh.edges: 300.0
 training.lambda_mesh.laplacian: 150.0
 training.lambda_mesh.normal: 0.1
-training.lambda_mesh.verts_scale: 1.0
+training.lambda_mesh.verts_scale: 0.0
 training.lambda_normal.head: 2.0
-training.lambda_opacity: 10.0
 training.lambda_rgb: 1.0
 training.lambda_rgb.hair: 1.0
 training.lambda_rgb.head: 1.0
-training.lambda_rotation: 10.0
-training.lambda_scaling: 10.0
 training.lambda_silh.hair: 0.2
 training.lambda_silh.solid_hair: 0.1
 training.lambda_ssim: 0.2
@@ -99,7 +90,7 @@ training.pe: LPE
 training.pe.include_input: true
 training.pe.log_sampling: true
 training.pe.num_freqs: 8
-training.pretrained_checkpoint_path: null
+training.pretrained_checkpoint_path: /home/exp/conallwang_works/checkpoints/MeGA/debug/train_306_b8_MeGA_neutralhair/checkpoint_latest.pth
 training.stages:
 - head
 - joint

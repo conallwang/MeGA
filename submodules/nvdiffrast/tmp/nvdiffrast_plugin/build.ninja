@@ -1,0 +1,43 @@
+ninja_required_version = 1.3
+cxx = c++
+nvcc = /usr/local/cuda/bin/nvcc
+
+cflags = -DTORCH_EXTENSION_NAME=nvdiffrast_plugin -DTORCH_API_INCLUDE_EXTENSION_H -DPYBIND11_COMPILER_TYPE=\"_gcc\" -DPYBIND11_STDLIB=\"_libstdcpp\" -DPYBIND11_BUILD_ABI=\"_cxxabi1011\" -isystem /opt/conda/lib/python3.7/site-packages/torch/include -isystem /opt/conda/lib/python3.7/site-packages/torch/include/torch/csrc/api/include -isystem /opt/conda/lib/python3.7/site-packages/torch/include/TH -isystem /opt/conda/lib/python3.7/site-packages/torch/include/THC -isystem /usr/local/cuda/include -isystem /opt/conda/include/python3.7m -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -std=c++14 -DNVDR_TORCH
+post_cflags = 
+cuda_cflags = -DTORCH_EXTENSION_NAME=nvdiffrast_plugin -DTORCH_API_INCLUDE_EXTENSION_H -DPYBIND11_COMPILER_TYPE=\"_gcc\" -DPYBIND11_STDLIB=\"_libstdcpp\" -DPYBIND11_BUILD_ABI=\"_cxxabi1011\" -isystem /opt/conda/lib/python3.7/site-packages/torch/include -isystem /opt/conda/lib/python3.7/site-packages/torch/include/torch/csrc/api/include -isystem /opt/conda/lib/python3.7/site-packages/torch/include/TH -isystem /opt/conda/lib/python3.7/site-packages/torch/include/THC -isystem /usr/local/cuda/include -isystem /opt/conda/include/python3.7m -D_GLIBCXX_USE_CXX11_ABI=0 -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ --expt-relaxed-constexpr -gencode=arch=compute_75,code=compute_75 -gencode=arch=compute_75,code=sm_75 --compiler-options '-fPIC' -DNVDR_TORCH -lineinfo -std=c++14
+cuda_post_cflags = 
+ldflags = -shared -L/opt/conda/lib/python3.7/site-packages/torch/lib -lc10 -lc10_cuda -ltorch_cpu -ltorch_cuda_cu -ltorch_cuda_cpp -ltorch -ltorch_python -L/usr/local/cuda/lib64 -lcudart
+
+rule compile
+  command = $cxx -MMD -MF $out.d $cflags -c $in -o $out $post_cflags
+  depfile = $out.d
+  deps = gcc
+
+rule cuda_compile
+  depfile = $out.d
+  deps = gcc
+  command = $nvcc  $cuda_cflags -c $in -o $out $cuda_post_cflags
+
+rule link
+  command = $cxx $in $ldflags -o $out
+
+build Buffer.o: compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/common/cudaraster/impl/Buffer.cpp
+build CudaRaster.o: compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/common/cudaraster/impl/CudaRaster.cpp
+build RasterImpl.cuda.o: cuda_compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/common/cudaraster/impl/RasterImpl.cu
+build RasterImpl.o: compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/common/cudaraster/impl/RasterImpl.cpp
+build common.o: compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/common/common.cpp
+build rasterize.cuda.o: cuda_compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/common/rasterize.cu
+build interpolate.cuda.o: cuda_compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/common/interpolate.cu
+build texture.cuda.o: cuda_compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/common/texture.cu
+build texture.o: compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/common/texture.cpp
+build antialias.cuda.o: cuda_compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/common/antialias.cu
+build torch_bindings.o: compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/torch/torch_bindings.cpp
+build torch_rasterize.o: compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/torch/torch_rasterize.cpp
+build torch_interpolate.o: compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/torch/torch_interpolate.cpp
+build torch_texture.o: compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/torch/torch_texture.cpp
+build torch_antialias.o: compile /opt/conda/lib/python3.7/site-packages/nvdiffrast/torch/torch_antialias.cpp
+
+build nvdiffrast_plugin.so: link Buffer.o CudaRaster.o RasterImpl.cuda.o RasterImpl.o common.o rasterize.cuda.o interpolate.cuda.o texture.cuda.o texture.o antialias.cuda.o torch_bindings.o torch_rasterize.o torch_interpolate.o torch_texture.o torch_antialias.o
+
+default nvdiffrast_plugin.so
+
