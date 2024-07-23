@@ -18,6 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from dataset.nersemble import NeRSembleData
 from joint_trainer import JointTrainer
+from hair_trainer import HairTrainer
 from utils import CUDA_Timer, seed_everything, ssim, visDepthMap, visimg
 
 parser = argparse.ArgumentParser("EVALUATE")
@@ -272,7 +273,8 @@ if __name__ == "__main__":
     if not args.skip_render:
         test_loader, radius, all_flame_params = get_dataset(logger, datatype="nersemble")
 
-        trainer = JointTrainer(config, all_flame_params, logger, radius, is_val=True)
+        Trainer = HairTrainer if config["pipe.neutral_hair"] else JointTrainer
+        trainer = Trainer(config, logger, radius, all_flame_params=all_flame_params, is_val=True)
         trainer.set_eval()
         # trainer.stage = "joint"  # render with hair
 
