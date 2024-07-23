@@ -13,7 +13,7 @@ from tqdm import tqdm
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from dataset.nersemble import NeRSembleData
-from joint_trainer import Trainer
+from joint_trainer import JointTrainer
 from utils import seed_everything, visimg, visPositionMap
 
 
@@ -108,16 +108,17 @@ def get_uvmask(trainer, painting_loader):
             painting_mask = items["painting_mask"].cuda()
 
             # 2. Run the network
-            outputs, visualization = trainer.network_forward()
+            _ = trainer.network_forward()
+            face_buffer = trainer.facewrapper.buffer
 
             painting_mask = painting_mask[0, ..., None].detach().cpu().numpy()
-            face_ids = set(outputs["head_face_ids"][0].reshape(-1).tolist())
+            face_ids = set(face_buffer["head_face_ids"][0].reshape(-1).tolist())
             if -1 in face_ids:
                 face_ids.remove(-1)
             f_ids = list(face_ids)
             f_ids.sort()
 
-            uv_mask = trainer.remap_tex_from_2dmask(outputs["head_verts_refine"], painting_mask, f_ids)
+            uv_mask = trainer.remap_tex_from_2dmask(face_buffer["head_verts_refine"], painting_mask, f_ids)
             return uv_mask
 
     print("\n\nThere is no any painting mask !!!  Please check !!!\n\n")
@@ -140,12 +141,13 @@ def get_painting_masks(trainer, painting_loader, uv_mask):
         name = items["name"][0]
 
         # 2. Run the network
-        outputs, visualization = trainer.network_forward()
+        _ = trainer.network_forward()
+        face_buffer = trainer.facewrapper.buffer
 
-        head_face_ids = outputs["head_face_ids"][0]  # [H, W]
-        head_face_bw = outputs["head_face_bw"][0]  # [H, W, 2]
+        head_face_ids = face_buffer["head_face_ids"][0]  # [H, W]
+        head_face_bw = face_buffer["head_face_bw"][0]  # [H, W, 2]
         head_face_bw = torch.cat([head_face_bw, 1 - head_face_bw.sum(-1, keepdim=True)], dim=-1)
-        head_face_uvs = outputs["head_face_uvs"]  # [F, 3, 2]
+        head_face_uvs = face_buffer["head_face_uvs"]  # [F, 3, 2]
         valid = head_face_ids > -1
 
         XY_uv = (head_face_uvs[head_face_ids] * head_face_bw[..., None]).sum(-2)  # [H, W, 2]
@@ -160,7 +162,7 @@ def painting(trainer, painting_loader, logger, save_stage=None):
     painting_masks = get_painting_masks(trainer, painting_loader, uv_mask)
     res = np.where(uv_mask)
     us, vs = list(res[1]), list(res[0])
-    old_tex = trainer.models["neural_texture"].texture.data.clone()
+    old_tex = trainer.facewrapper.get_model("neural_texture").texture.data.clone()
 
     bar = tqdm(range(config["training.epochs"]))
     global_step = 0
@@ -177,16 +179,14 @@ def painting(trainer, painting_loader, logger, save_stage=None):
             painting = items["painting"][0]
 
             # 2. Run the network
-            outputs, visualization = trainer.network_forward()
+            outputs = trainer.network_forward()
             painting_mask = painting_masks[name]
 
             # 3. compute loss
-            hair_mask = trainer.mask["hair"]
-            head_mask = torch.clip(1 - hair_mask, min=0.0, max=1.0)
-            painting_mask_out = (head_mask - painting_mask.int()).bool()
+            painting_mask_out = (1 - painting_mask.int()).bool()
 
-            render_head = outputs["render_head"]
-            gt_head = trainer.img * head_mask[..., None]
+            render_head = outputs["render_face"]
+            gt_head = trainer.img
             if painting:
                 loss_painting = torch.linalg.norm(render_head[painting_mask] - gt_head[painting_mask], dim=-1).mean()
                 loss_skin = torch.linalg.norm(
@@ -204,9 +204,9 @@ def painting(trainer, painting_loader, logger, save_stage=None):
             loss.backward()
             trainer.optimizer.step()
 
-            new_values = trainer.models["neural_texture"].texture.data[:, :, vs, us].clone()
-            trainer.models["neural_texture"].texture.data[:] = old_tex[:]
-            trainer.models["neural_texture"].texture.data[:, :, vs, us] = new_values
+            new_values = trainer.facewrapper.get_model("neural_texture").texture.data[:, :, vs, us].clone()
+            trainer.facewrapper.get_model("neural_texture").texture.data[:] = old_tex[:]
+            trainer.facewrapper.get_model("neural_texture").texture.data[:, :, vs, us] = new_values
 
             losses.append(loss.detach().item())
 
@@ -219,9 +219,9 @@ def painting(trainer, painting_loader, logger, save_stage=None):
                 logger.info("Latest checkpoint saved at {}".format(checkpoint_path))
 
                 savepath = os.path.join(logdir, "render_head_it{}.png".format(global_step))
-                visimg(savepath, outputs["render_head"])
+                visimg(savepath, outputs["render_face"])
                 savepath = os.path.join(logdir, "render_basic_head_it{}.png".format(global_step))
-                visimg(savepath, outputs["render_basic_head"])
+                visimg(savepath, outputs["render_basic_face"])
 
             if global_step % 2000 == 0:
                 # Save model
@@ -261,9 +261,7 @@ if __name__ == "__main__":
 
     painting_loader, radius = get_dataset(logger, datatype="nersemble")
 
-    opt_flame_params = np.load(os.path.join(dir_name, "flame_params.npz"))
-    trainer = Trainer(config, logger, radius, painting=True)
-    trainer.load_all_flame_params(all_flame_params=opt_flame_params)
+    trainer = JointTrainer(config, logger, radius, painting=True)
     trainer.set_train()
     trainer._set_stage("painting")
 

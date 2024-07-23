@@ -25,7 +25,7 @@ from utils import (
 
 
 class HairTrainer:
-    def __init__(self, config, logger, spatial_lr_scale):
+    def __init__(self, config, logger, spatial_lr_scale, all_flame_params=None, is_val=False):
         # DEBUG
         # torch.autograd.set_detect_anomaly(True)
 
@@ -35,6 +35,7 @@ class HairTrainer:
         self.rate_h, self.rate_w = self.img_h / 802.0, self.img_w / 550.0
         self.rate = min(self.rate_h, self.rate_w)
         self.nan_detect = False
+        self.is_val = is_val
         self.spatial_lr_scale = spatial_lr_scale
         self.lr = config["training.learning_rate"]
         self.stages = config["training.stages"]
@@ -56,6 +57,8 @@ class HairTrainer:
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(
             self.optimizer, milestones=config["training.step"], gamma=0.1
         )
+        if all_flame_params is not None:
+            self.init_all_flame_params(all_flame_params)
 
         # Restore checkpoint
         checkpoint_path = (
@@ -74,9 +77,9 @@ class HairTrainer:
             )
 
             # load optimized flame params
-            # dir_name = os.path.dirname(checkpoint_path)
-            # opt_flame_params = np.load(os.path.join(dir_name, "flame_params.npz"))
-            # self.load_all_flame_params(opt_flame_params)
+            dir_name = os.path.dirname(checkpoint_path)
+            opt_flame_params = np.load(os.path.join(dir_name, "flame_params.npz"))
+            self.load_all_flame_params(opt_flame_params)
 
             if stage is not None:
                 self.stage = stage
@@ -121,8 +124,8 @@ class HairTrainer:
 
     def _init_nets(self):
         init_pts = np.load(self.config["gs.init_pts"])
-        self.hairwrapper = GSHairWrapper(self.config, init_pts, self.spatial_lr_scale).cuda()
-        self.facewrapper = MeshFaceWrapper(self.config, self.move_eyes, self.xyz_cond).cuda()
+        self.hairwrapper = GSHairWrapper(self.config, init_pts, self.spatial_lr_scale)
+        self.facewrapper = MeshFaceWrapper(self.config, self.move_eyes, self.xyz_cond)
 
         self.parameters_to_train = self.hairwrapper.get_optim_params() + self.facewrapper.get_optim_params()
 
@@ -265,7 +268,7 @@ class HairTrainer:
 
         self.name = items["name"]
 
-    def init_all_flame_params(self, flame_params, is_val=False):
+    def init_all_flame_params(self, flame_params):
         # learnable flame params
         T = max(list(flame_params.keys())) + 1
         m_id = min(list(flame_params.keys()))
@@ -291,7 +294,7 @@ class HairTrainer:
             self.all_flame_params[k] = v.float().cuda()
 
         optimize_params = self.config.get("flame.optimize_params", False)
-        if (not is_val) and optimize_params:
+        if (not self.is_val) and optimize_params:
             flame_lrs = {"shape": 1e-5, "expr": 1e-3, "pose": 1e-5, "translation": 1e-6}
 
             # shape
@@ -331,8 +334,45 @@ class HairTrainer:
             }
             self.optimizer.add_param_group(param_trans)
 
-    # def load_all_flame_params(self, all_flame_params):
-    #     self.all_flame_params = {k: torch.from_numpy(v).float().cuda() for k, v in all_flame_params.items()}
+    def load_all_flame_params(self, all_flame_params):
+        self.all_flame_params = {k: torch.from_numpy(v).float().cuda() for k, v in all_flame_params.items()}
+
+    def load_flame_params(self, flame_params):
+        """Used to driving from another flame params"""
+        self.flame_params = flame_params
+        for key, val in flame_params.items():
+            if isinstance(val, np.ndarray):
+                self.flame_params[key] = torch.from_numpy(val).float().cuda()
+            elif isinstance(val, torch.Tensor):
+                self.flame_params[key] = val.float().cuda()
+
+    def load_cameras(self, T_c2w, items):
+        """Used to render free views"""
+        for key, val in items.items():
+            if isinstance(val, np.ndarray):
+                items[key] = torch.from_numpy(val).cuda()
+
+        self.camera = []
+        for i in range(T_c2w.shape[0]):
+            w2c = torch.from_numpy(np.linalg.inv(T_c2w[i])).float().cuda()
+            camera = Camera(
+                R=w2c[:3, :3],
+                t=w2c[:3, 3],
+                intr=items["intr"][i],
+                zfar=100.0,
+                znear=0.01,
+                img_h=self.img_h,
+                img_w=self.img_w,
+                name=items["cam"][i],
+            )
+            self.camera.append(camera)
+
+        views = []
+        for c2w in T_c2w:
+            campos = c2w[:3, 3]
+            view = campos / np.linalg.norm(campos)
+            views.append(np.tile(view, (8, 8, 1)).transpose((2, 0, 1)))
+        self.view = torch.from_numpy(np.stack(views, axis=0)).float().cuda()
 
     def compare_depth(self, hair_depth, head_depth):
         hair_nz, head_nz = (

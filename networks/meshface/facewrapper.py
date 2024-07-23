@@ -30,10 +30,8 @@ from utils import (
 )
 
 
-class MeshFaceWrapper(nn.Module):
-    def __init__(self, cfg, move_eyes=False, xyz_cond=False):
-        super().__init__()
-
+class MeshFaceWrapper:
+    def __init__(self, cfg, move_eyes=False, xyz_cond=False, painting=False):
         self.cfg = cfg
         self.img_h, self.img_w = cfg["data.img_h"], cfg["data.img_w"]
         self.move_eyes = move_eyes
@@ -91,8 +89,10 @@ class MeshFaceWrapper(nn.Module):
         self.parameters_to_train += params_with_lr(
             list(self.models["pe"].named_parameters()), self.lr, label="head_tex_pe"
         )
+
+        scale = 0.01 if painting else 1.0  # less lr for pixel decoder
         self.parameters_to_train += params_with_lr(
-            list(self.models["head_mlp"].named_parameters()), self.lr, label="head_tex_mlp"
+            list(self.models["head_mlp"].named_parameters()), self.lr * scale, label="head_tex_mlp"
         )
 
         self._init_data()
@@ -340,6 +340,8 @@ class MeshFaceWrapper(nn.Module):
             "head_verts_refine": head_verts_refine,
             "head_verts_flame": head_verts_flame,
             "head_face_ids": rasterized_face["face_id"],
+            "head_face_bw": rasterized_face["face_bw"],
+            "head_face_uvs": self.flame_dec.vertex_uvs[self.flame_dec.faces_uvs],
             "head_faces": head_faces,
             "basic_tex": basic_tex,
             "dynamic_tex": dynamic_tex if not nodyn else None,
@@ -572,6 +574,9 @@ class MeshFaceWrapper(nn.Module):
         savepath = os.path.join(savedir, "maps_it{}.png".format(step))
         maps = np.concatenate([basic_tex, view_tex, dynamic_tex, neural_texture], axis=1)
         cv2.imwrite(savepath, maps)
+
+    def save_mesh(self, savepath):
+        write_obj(savepath, self.buffer["head_verts_refine"][0], self.buffer["head_faces"][0] + 1)
 
     def state_dict(self):
         state_dict = {}

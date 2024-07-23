@@ -17,7 +17,7 @@ from tqdm import tqdm
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from dataset.nersemble import NeRSembleData
-from joint_trainer import Trainer
+from joint_trainer import JointTrainer
 from utils import CUDA_Timer, seed_everything, ssim, visDepthMap, visimg
 
 parser = argparse.ArgumentParser("EVALUATE")
@@ -40,7 +40,7 @@ with open(config_path, "r") as f:
 config["training.pretrained_checkpoint_path"] = args.checkpoint
 config["local_workspace"] = dir_name
 config["data.load_images"] = False
-config["gs.pretrain"] = None
+# config["gs.pretrain"] = None
 
 seed_everything(42)
 
@@ -129,7 +129,7 @@ def render(trainer, test_loader, logger, skip_render=False, debug=False):
 
         # 2. Run the network
         render_timer.start(step)
-        outputs, visualization = trainer.network_forward(is_val=True)
+        outputs = trainer.network_forward(is_val=True)
         render_timer.end(step)
 
         for i in range(trainer.img.shape[0]):
@@ -272,10 +272,7 @@ if __name__ == "__main__":
     if not args.skip_render:
         test_loader, radius, all_flame_params = get_dataset(logger, datatype="nersemble")
 
-        opt_shape_params = np.load(os.path.join(dir_name, "flame_params.npz"))["shape"]  # [1, 300]
-        trainer = Trainer(config, logger, radius)
-        trainer.init_all_flame_params(all_flame_params, is_val=True)
-        trainer.all_flame_params["shape"] = torch.from_numpy(opt_shape_params).float().cuda()
+        trainer = JointTrainer(config, all_flame_params, logger, radius, is_val=True)
         trainer.set_eval()
         # trainer.stage = "joint"  # render with hair
 

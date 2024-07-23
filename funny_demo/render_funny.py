@@ -13,7 +13,8 @@ from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from joint_trainer import Trainer
+from joint_trainer import JointTrainer
+from hair_trainer import HairTrainer
 from utils import CUDA_Timer, fov2focal, seed_everything, visimg
 
 parser = argparse.ArgumentParser("RENDER FUNNY")
@@ -68,7 +69,7 @@ if args.hair is not None:
 config["training.pretrained_checkpoint_path"] = args.checkpoint
 config["local_workspace"] = dir_name
 config["data.load_images"] = False
-config["gs.pretrain"] = None
+# config["gs.pretrain"] = None
 config["data.per_gpu_batch_size"] = 1
 
 seed_everything(42)
@@ -276,13 +277,12 @@ def render(trainer, logger):
         trainer.batch_size = 1
         trainer.load_flame_params(flame_param)
         trainer.load_cameras(cams[i : i + 1], {"intr": intrin[None], "cam": [name]})
-        trainer.expand_dims()
         if show_time and (i + 1) > warmup_steps:
             ld_timer.end(i)
 
         # 2. Run the network
         render_timer.start(i)
-        outputs, visualization = trainer.network_forward(is_val=True)
+        outputs = trainer.network_forward(is_val=True)
         render_timer.end(i)
 
         # 3. Save images
@@ -327,6 +327,7 @@ if __name__ == "__main__":
 
     logger.info("Config: {}".format(config))
 
+    Trainer = HairTrainer if config["pipe.neutral_hair"] else JointTrainer
     trainer = Trainer(config, logger, spatial_lr_scale=0.0)
     trainer.stage = "head" if config["bald"] else "joint"
     if args.hair is not None:

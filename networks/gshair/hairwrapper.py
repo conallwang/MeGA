@@ -87,7 +87,7 @@ class GSHairWrapper(nn.Module):
                 self.all_lambdas[k] = self.update_x(k, step)
 
     def update_xyz_lr(self, step, optimizer):
-        self.canonical_gs.update_learning_rate(step, optimizer)
+        self.models["canonical_gs"].update_learning_rate(step, optimizer)
 
     def render(self, viewpoint_cameras, bg_color=[1.0, 1.0, 1.0]):
         background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
@@ -267,19 +267,19 @@ class GSHairWrapper(nn.Module):
 
             # Reg
             solid_hair_loss = ((1 - hair_silhoutte) * erode_hair_mask).mean()
-
-            for k, v in self.buffer["gs_reg_loss"].items():
-                loss_hair += self.get_lambda(k) * v
-            loss_aiap = (
-                self.get_lambda("aiap.xyz") * self.buffer["gs_aiap_xyz_loss"]
-                + self.get_lambda("aiap.cov") * self.buffer["gs_aiap_cov_loss"]
-            )
         loss_hair = (
             self.get_lambda("rgb.hair") * hair_loss
             + self.get_lambda("ssim") * ssim_loss
             + self.get_lambda("silh.hair") * hair_silh_loss
             + self.get_lambda("silh.solid_hair") * solid_hair_loss
         )
+        if render_hair is not None:
+            for k, v in self.buffer["gs_reg_loss"].items():
+                loss_hair += self.get_lambda(k) * v
+            loss_aiap = (
+                self.get_lambda("aiap.xyz") * self.buffer["gs_aiap_xyz_loss"]
+                + self.get_lambda("aiap.cov") * self.buffer["gs_aiap_cov_loss"]
+            )
 
         loss_dict = {
             "loss_pho/rgb.hair": hair_loss,

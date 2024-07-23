@@ -36,7 +36,7 @@ from utils import (
 
 
 class JointTrainer:
-    def __init__(self, config, logger, spatial_lr_scale, painting=False):
+    def __init__(self, config, logger, spatial_lr_scale, all_flame_params=None, painting=False, is_val=False):
         # DEBUG
         # torch.autograd.set_detect_anomaly(True)
 
@@ -46,7 +46,9 @@ class JointTrainer:
         self.rate_h, self.rate_w = self.img_h / 802.0, self.img_w / 550.0
         self.rate = min(self.rate_h, self.rate_w)
         self.nan_detect = False
+        self.is_val = is_val
         self.spatial_lr_scale = spatial_lr_scale
+        self.gs_pretrain = config["gs.pretrain"]
         self.lr = config["training.learning_rate"]
         self.alter_hair = False
         self.stages = config["training.stages"]
@@ -56,18 +58,24 @@ class JointTrainer:
         self.stages_epoch = [0] + config["training.stages_epoch"] + [1e10]
         assert (
             len(self.stages_epoch) - len(self.stages)
-        ) >= -1, "The length of 'training.stages_epoch' should be larger than the length of 'training.stages' - 1."
+        ) >= -1, (
+            "[ERROR] The length of 'training.stages_epoch' should be larger than the length of 'training.stages' - 1."
+        )
+        assert self.gs_pretrain is not None, "[ERROR] You need set 'gs.pretrain' to pretrained neutral hair ckpt."
+
         self.xyz_cond = config.get("flame.xyz_cond", False)
         self.move_eyes = config.get("flame.move_eyes", False)
 
         self.parameters_to_train = []
-        self._init_nets()
+        self._init_nets(painting)
 
         # set optimizer
         self.optimizer = torch.optim.Adam(self.parameters_to_train, eps=1e-15)
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(
             self.optimizer, milestones=config["training.step"], gamma=0.1
         )
+        if all_flame_params is not None:
+            self.init_all_flame_params(all_flame_params)
 
         # Restore checkpoint
         checkpoint_path = (
@@ -82,8 +90,14 @@ class JointTrainer:
         self.stage_step = 0
         if os.path.exists(checkpoint_path):
             self.current_epoch, self.global_step, stage, stage_step = restore_model(
-                config, checkpoint_path, self.models, self.optimizer, logger
+                checkpoint_path, self.hairwrapper, self.facewrapper, self.optimizer, logger
             )
+
+            # load optimized flame params
+            dir_name = os.path.dirname(checkpoint_path)
+            opt_flame_params = np.load(os.path.join(dir_name, "flame_params.npz"))
+            self.load_all_flame_params(opt_flame_params)
+
             if stage is not None:
                 self.stage = stage
                 self.stage_step = stage_step
@@ -115,34 +129,24 @@ class JointTrainer:
 
     def _set_stage(self, stage):
         if stage == "joint":
-            self._freeze("head")
+            self._freeze("all")
 
-            if self.gs_pretrain is None:
-                # train canonical hair
-                self._unfreeze("gs")
-            else:
-                # load canonical hair
-                state_dict = torch.load(self.gs_pretrain, map_location=lambda storage, loc: storage.cpu())
-                _state_dict = {
-                    k.replace("module.", "") if k.startswith("module.") else k: v
-                    for k, v in state_dict["canonical_gs"].items()
-                }
-                self.models["canonical_gs"].load_state_dict(
-                    _state_dict, self.optimizer, self.global_step, self.config["gs.upSH"]
-                )
-                # stop learning canonical hair
-                # learn deformation field & head tex
-                self._freeze("gs")
-                self._unfreeze("hair")
-                self._unfreeze("head_tex")
+            # load canonical hair
+            state_dict = torch.load(self.gs_pretrain, map_location=lambda storage, loc: storage.cpu())
+            _state_dict = {
+                k.replace("module.", "") if k.startswith("module.") else k: v
+                for k, v in state_dict["canonical_gs"].items()
+            }
+            self.hairwrapper.get_model("canonical_gs").load_state_dict(
+                _state_dict, self.optimizer, self.global_step, self.config["gs.upSH"]
+            )
+            # learn deformation field & head tex
+            self._unfreeze("hair")
+            self._unfreeze("head_tex")
         elif stage == "head":
             # learn facial mesh
-            self._freeze("hair")
-            self._freeze("gs")
-            self._unfreeze("head")
-        elif stage == "hair":
             self._freeze("all")
-            self._unfreeze("gs")
+            self._unfreeze("head")
         elif stage == "painting":
             self._freeze("all")
             self._unfreeze("head_tex_basic")
@@ -157,14 +161,12 @@ class JointTrainer:
             self.logger.info("Unknown training stage: {}".format(stage))
             exit(1)
 
-    def _init_nets(self):
+    def _init_nets(self, painting=False):
         init_pts = np.load(self.config["gs.init_pts"])
-        self.hairwrapper = GSHairWrapper(self.config, init_pts, self.spatial_lr_scale).cuda()
+        self.hairwrapper = GSHairWrapper(self.config, init_pts, self.spatial_lr_scale)
+        self.facewrapper = MeshFaceWrapper(self.config, self.move_eyes, self.xyz_cond, painting=painting)
 
-        self.facewrapper = MeshFaceWrapper(self.config, self.move_eyes, self.xyz_cond).cuda()
-
-        self.parameters_to_train += self.hairwrapper.optim_params()
-        self.parameters_to_train += self.facewrapper.optim_params()
+        self.parameters_to_train = self.hairwrapper.get_optim_params() + self.facewrapper.get_optim_params()
 
     def _init_data(self):
         B, H, W = (
@@ -200,8 +202,9 @@ class JointTrainer:
             "loss_geo/silh.hair": AverageMeter("train_silh_hair_loss"),
             "loss_geo/depth.head": AverageMeter("train_depth_head_loss"),
             "loss_geo/normal.head": AverageMeter("train_normal_head_loss"),
-            "loss_pho/lpips": AverageMeter("train_lpips_loss"),
-            "loss_pho/ssim": AverageMeter("train_ssim_loss"),
+            "loss_pho/ssim.obj": AverageMeter("train_ssim_obj_loss"),
+            "loss_pho/ssim.hair": AverageMeter("train_ssim_hair_loss"),
+            "loss_pho/ssim.head": AverageMeter("train_ssim_head_loss"),
             "loss_reg/mesh.laplacian": AverageMeter("train_mesh_laplacian_loss"),
             "loss_reg/mesh.normal": AverageMeter("train_mesh_normal_loss"),
             "loss_reg/mesh.edges": AverageMeter("train_mesh_edges_loss"),
@@ -214,17 +217,20 @@ class JointTrainer:
             "metrics/psnr": AverageMeter("metrics.psnr"),
             "loss_pho/rgb.obj": AverageMeter("val_rgb_obj_loss"),
             "loss_pho/rgb.hair": AverageMeter("val_rgb_hair_loss"),
+            "loss_pho/rgb.head": AverageMeter("val_rgb_head_loss"),
+            "loss_pho/rgb.basic_head": AverageMeter("val_rgb_basic_head_loss"),
             "loss_geo/silh.hair": AverageMeter("val_silh_hair_loss"),
             "loss_geo/depth.head": AverageMeter("val_depth_head_loss"),
             "loss_geo/normal.head": AverageMeter("val_normal_head_loss"),
-            "loss_pho/lpips": AverageMeter("val_lpips_loss"),
-            "loss_pho/ssim": AverageMeter("val_ssim_loss"),
+            "loss_pho/ssim.obj": AverageMeter("val_ssim_obj_loss"),
+            "loss_pho/ssim.hair": AverageMeter("val_ssim_hair_loss"),
+            "loss_pho/ssim.head": AverageMeter("val_ssim_head_loss"),
             "loss_reg/mesh.laplacian": AverageMeter("val_mesh_laplacian_loss"),
             "loss_reg/mesh.normal": AverageMeter("val_mesh_normal_loss"),
             "loss_reg/mesh.edges": AverageMeter("val_mesh_edges_loss"),
             "loss_reg/mesh.vscale": AverageMeter("val_mesh_vscale_loss"),
+            "loss_reg/silh.solid_hair": AverageMeter("val_silh_solid_hair_loss"),
         }
-        self.lpips = lpips.LPIPS(net="vgg").cuda()
 
     def set_train(self):
         """Convert models to training mode"""
@@ -366,7 +372,7 @@ class JointTrainer:
             views.append(np.tile(view, (8, 8, 1)).transpose((2, 0, 1)))
         self.view = torch.from_numpy(np.stack(views, axis=0)).float().cuda()
 
-    def init_all_flame_params(self, flame_params, is_val=False):
+    def init_all_flame_params(self, flame_params):
         # learnable flame params
         T = max(list(flame_params.keys())) + 1
         m_id = min(list(flame_params.keys()))
@@ -392,7 +398,7 @@ class JointTrainer:
             self.all_flame_params[k] = v.float().cuda()
 
         optimize_params = self.config.get("flame.optimize_params", False)
-        if (not is_val) and optimize_params:
+        if (not self.is_val) and optimize_params:
             flame_lrs = {"shape": 1e-5, "expr": 1e-3, "pose": 1e-5, "translation": 1e-6}
 
             # shape
@@ -508,19 +514,15 @@ class JointTrainer:
 
             # uv_pe
             if self.neural:
-                uv_pe = self.models["pe"](valid_uv)  # [N, 4]
-                rasterized_features = torch.cat([valid_xyz, uv_pe, valid_tex], dim=-1)
-                rendered_face = self.neural2rgb(rasterized_features, valid=valid_pixels)
-
-                rasterized_basic_features = torch.cat([valid_xyz, uv_pe, valid_basic_tex], dim=-1)
-                rendered_basic_head = self.neural2rgb(rasterized_basic_features, valid=valid_pixels)
+                rendered_face = self.facewrapper.feats2rgbs(valid_xyz, valid_uv, valid_tex, valid_pixels)
+                rendered_basic_face = self.facewrapper.feats2rgbs(valid_xyz, valid_uv, valid_basic_tex, valid_pixels)
             else:
                 B, H, W = valid_pixels.shape
                 rendered_face = torch.ones((B, H, W, 3)).float().cuda()
                 rendered_face[valid_pixels] = valid_tex
 
-                rendered_basic_head = torch.ones((B, H, W, 3)).float().cuda()
-                rendered_basic_head[valid_pixels] = valid_basic_tex
+                rendered_basic_face = torch.ones((B, H, W, 3)).float().cuda()
+                rendered_basic_face[valid_pixels] = valid_basic_tex
 
         # 3. Compute fusing mask & fuse
         if need_fusion:
@@ -572,8 +574,8 @@ class JointTrainer:
 
         # 4. Output results
         outputs["render_hair"] = rendered_hair if has_hair else None
-        outputs["render_head"] = rendered_face if has_face else None
-        outputs["render_basic_head"] = rendered_basic_head if has_face else None
+        outputs["render_face"] = rendered_face if has_face else None
+        outputs["render_basic_face"] = rendered_basic_face if has_face else None
         outputs["render_fuse"] = render_fuse
         outputs["hair_depth"] = rasterized_hair["depth"] if has_hair else None
         outputs["head_depth"] = rasterized_face["depth"] if has_face else None
@@ -581,6 +583,9 @@ class JointTrainer:
         outputs["occlussion_mask"] = hair_mask if need_fusion else None  # no gradients
         outputs["head_geomap"] = rasterized_face["rgba"][..., :3] if has_face else None
 
+        outputs["raster_hairmask"] = None if "raster_hairmask" not in outputs else outputs["raster_hairmask"]
+        outputs["raster_headmask"] = None if "raster_headmask" not in outputs else outputs["raster_headmask"]
+        outputs["fullmask"] = None if "fullmask" not in outputs else outputs["fullmask"]
         #   DEBUG
         # cv2.imwrite('test_rasthair.png', outputs['raster_hairmask'][0, ..., None].detach().cpu().numpy() * 255)
         # cv2.imwrite('test_rasthead.png', outputs['raster_headmask'][0, ..., None].detach().cpu().numpy() * 255)
@@ -620,7 +625,7 @@ class JointTrainer:
         remap_tex = np.clip(remap_tex, 0.0, 255.0)
 
         ver_vis_mask = np.zeros((N_v, 1, 1)).astype(np.float32)
-        vis_vert_ids = list(set(self.flame_dec.faces[face_ids].reshape(-1).tolist()))
+        vis_vert_ids = list(set(self.facewrapper.flame_dec.faces[face_ids].reshape(-1).tolist()))
         vis_vert_ids.sort()
         ver_vis_mask[vis_vert_ids] = 1.0
         remap_vis_mask0 = cv2.remap(ver_vis_mask, uv_ver_map_x, uv_ver_map_y0, cv2.INTER_NEAREST)
@@ -651,20 +656,13 @@ class JointTrainer:
 
     def network_forward(self, is_val=False):
         rasterized_hair, rasterized_face = None, None
-        rigid_trans = torch.eye(4)[None].expand(self.batch_size, -1, -1).float().cuda()
         bg_color = [1.0, 1.0, 1.0]  # white
 
-        if self.stage == "head":
-            rasterized_face, rigid_trans = self.facewrapper.render(self.camera, self.flame_params, self.view, bg_color)
-        elif self.stage == "hair":
-            rasterized_hair = self.hairwrapper.render(self.camera, bg_color)
-        elif self.stage == "joint":
-            rasterized_face, rigid_trans = self.facewrapper.render(self.camera, self.flame_params, self.view, bg_color)
+        rasterized_face, rigid_trans = self.facewrapper.render(self.camera, self.flame_params, self.view, bg_color)
+        if self.stage == "joint":
             rasterized_hair = self.hairwrapper.render_with_trans(
                 self.camera, self.flame_params, rigid_trans[:, :3, :3], rigid_trans[:, :3, 3], bg_color
             )
-        else:
-            raise "Not Supported Stage. Only support ['head', 'hair', 'joint'] now."
 
         outputs = self.fuse(rasterized_hair, rasterized_face, is_val=is_val)
 
@@ -690,7 +688,7 @@ class JointTrainer:
 
     def compute_loss(self, outputs):
         render_rgb = outputs["render_fuse"]
-        render_head = outputs["render_head"]
+        render_face = outputs["render_face"]
 
         # update hyper-parameters
         self.update_lambda()
@@ -707,8 +705,8 @@ class JointTrainer:
 
         # L2 Loss
         rgb_loss = torch.linalg.norm((render_rgb - self.img), dim=-1).mean()
-        whole_head_loss = torch.linalg.norm((render_head - self.img), dim=-1).mean()
-        whole_head_ssim_loss = 1.0 - ssim(render_head.permute((0, 3, 1, 2)), self.img.permute((0, 3, 1, 2)))
+        whole_head_loss = torch.linalg.norm((render_face - self.img), dim=-1).mean()
+        whole_head_ssim_loss = 1.0 - ssim(render_face.permute((0, 3, 1, 2)), self.img.permute((0, 3, 1, 2)))
 
         # SSIM Loss
         if self.get_lambda("ssim") > 0:
@@ -719,7 +717,9 @@ class JointTrainer:
         loss_head, loss_head_dict = self.facewrapper.compute_losses(
             outputs, self.img, gt_head, self.depth_map, hair_mask, head_mask, self.global_step
         )
-        loss_hair, loss_hair_dict = self.hairwrapper.compute_losses(outputs, gt_hair, hair_mask, erode_hair_mask)
+        loss_hair, loss_hair_dict = self.hairwrapper.compute_losses(
+            outputs, gt_hair, hair_mask, erode_hair_mask, self.global_step
+        )
         loss_joint = (
             self.get_lambda("rgb") * rgb_loss
             + self.get_lambda("ssim") * ssim_loss
@@ -735,7 +735,7 @@ class JointTrainer:
 
         outputs["gt_hair"] = gt_hair
         outputs["gt_head"] = gt_head
-        loss_dict = {"loss": loss, "loss_pho/rgb.obj": rgb_loss, "loss_pho/ssim": ssim_loss}
+        loss_dict = {"loss": loss, "loss_pho/rgb.obj": rgb_loss, "loss_pho/ssim.obj": ssim_loss}
 
         # Update with head & hair loss
         loss_dict.update(loss_head_dict)
@@ -752,7 +752,9 @@ class JointTrainer:
         loss_silh_hair = loss_dict["loss_geo/silh.hair"]
         loss_depth_head = loss_dict["loss_geo/depth.head"]
         loss_normal_head = loss_dict["loss_geo/normal.head"]
-        loss_ssim = loss_dict["loss_pho/ssim"]
+        loss_ssim_obj = loss_dict["loss_pho/ssim.obj"]
+        loss_ssim_hair = loss_dict["loss_pho/ssim.hair"]
+        loss_ssim_head = loss_dict["loss_pho/ssim.head"]
         loss_mesh_laplacian = loss_dict["loss_reg/mesh.laplacian"]
         loss_mesh_normal = loss_dict["loss_reg/mesh.normal"]
         loss_mesh_edges = loss_dict["loss_reg/mesh.edges"]
@@ -773,6 +775,8 @@ class JointTrainer:
             "        normal:                               \n"
             "           head = %.4f                 w: %.4f\n"
             "        ssim = %.4f                    w: %.4f\n"
+            "           hair = %.4f                 w: %.4f\n"
+            "           head = %.4f                 w: %.4f\n"
             "        reg:                                  \n"
             "           mesh_laplacian = %.4f       w: %.4f\n"
             "           mesh_normal = %.4f          w: %.4f\n"
@@ -801,7 +805,11 @@ class JointTrainer:
                 self.get_lambda("depth.head"),
                 loss_normal_head.item(),
                 self.get_lambda("normal.head"),
-                loss_ssim.item(),
+                loss_ssim_obj.item(),
+                self.get_lambda("ssim"),
+                loss_ssim_hair.item(),
+                self.get_lambda("ssim"),
+                loss_ssim_head.item(),
                 self.get_lambda("ssim"),
                 loss_mesh_laplacian.item(),
                 self.get_lambda("mesh.laplacian"),
@@ -839,7 +847,7 @@ class JointTrainer:
                     self.logger.info("    Eval progress: {}/{}".format(batch_count, len(val_loader)))
 
                 self.set_data(items)
-                outputs, visualization = self.network_forward(is_val=True)
+                outputs = self.network_forward(is_val=True)
                 loss_dict = self.compute_loss(outputs)
 
                 mse, psnr = self.compute_metrics(outputs)
@@ -870,6 +878,9 @@ class JointTrainer:
         # TODO: 如果需要，可以将一些渲染结果存在visualization_dict中，然后用tb_writer保存一些结果图用于可视化
 
     def compute_metrics(self, outputs):
+        if outputs["fullmask"] is None:
+            return np.array(0.0), np.array(0.0)
+
         valid_mask = outputs["fullmask"] * self.mask["full"]
 
         gt_img = (self.img[0] * valid_mask[0, ..., None]).detach().cpu().numpy() * 255
@@ -957,8 +968,9 @@ class JointTrainer:
         combined_img = np.concatenate([gt, pred, mask], axis=0)
         cv2.imwrite(savepath, combined_img * 255)
 
+        self.facewrapper.visualize_textures(savedir, step)
         # fuse mask
-        if "fullmask" in outputs:
+        if outputs["fullmask"] is not None:
             savepath = os.path.join(savedir, "fullmask_it{}.png".format(step))
             fullmask = outputs["fullmask"] * self.mask["full"]
             cv2.imwrite(savepath, fullmask[0].detach().cpu().numpy() * 255)
@@ -1031,7 +1043,7 @@ class JointTrainer:
             if show_time and self.global_step > warmup_steps:
                 ld_timer.end(step - 1)
 
-            if self.stage in ["hair", "joint"]:
+            if self.stage in ["joint"]:
                 self.hairwrapper.update_xyz_lr(self.stage_step, self.optimizer)
 
             # 1. Set data for trainer
@@ -1050,55 +1062,14 @@ class JointTrainer:
             cl_timer.end(step)
             loss = loss_dict["loss"]
 
-            self.nan_debug()
+            self.nan_debug(loss)
 
             # 4. Backprop
             b_timer.start(step)
             loss.backward()
             b_timer.end(step)
 
-            # 5. Process Gaussians
-            pp_timer.start(step)
-            if self.stage in ["hair", "joint"] and self.stage_step % self.config["gs.upSH"] == 0:
-                self.hairwrapper.oneupSHdegree()
-
-            if (
-                self.stage in ["hair"]
-                and self.config["training.enable_densify"]
-                and (self.stage_step < self.config["gs.densify_until_iter"])
-            ):
-                self.hairwrapper.update_use_flags(self.stage_step)
-
-                do_densify = False
-                do_reset = False
-                for i in range(self.batch_size):
-                    actual_step = (self.stage_step - 1) * self.batch_size + i + 1
-
-                    self.hairwrapper.track_gsstates(i)
-
-                    if (
-                        actual_step > self.config["gs.densify_from_iter"]
-                        and actual_step % self.config["gs.densification_interval"] == 0
-                    ):
-                        do_densify = True
-
-                    if actual_step % (self.config["gs.opacity_reset_interval"]) == 0:
-                        do_reset = True
-
-                    if i == (self.batch_size - 1) and do_densify:
-                        self.hairwrapper.densify_n_prune(self.optimizer, self.stage_step)
-
-                    if i == (self.batch_size - 1) and do_reset and self.config["gs.enable_reset"]:
-                        # Save model
-                        checkpoint_path = os.path.join(self.config["local_workspace"], "checkpoint_reset.pth")
-                        if os.path.exists(checkpoint_path):
-                            os.remove(checkpoint_path)
-                        self.save_ckpt(checkpoint_path)
-                        self.logger.info("Latest checkpoint saved at {}".format(checkpoint_path))
-
-                        self.hairwrapper.reset_opacities(self.optimizer)
-            pp_timer.end(step)
-
+            # 5. update parameters
             up_timer.start(step)
             # self.clip_grad()
             self.optimizer.step()
@@ -1132,7 +1103,7 @@ class JointTrainer:
                 obj_path = os.path.join(
                     self.config["local_workspace"], "mesh_with_offsets_it{}.obj".format(self.global_step)
                 )
-                write_obj(obj_path, outputs["head_verts_refine"][0], outputs["head_faces"][0] + 1)
+                self.facewrapper.save_mesh(obj_path)
 
             if self.global_step > 0 and self.global_step % self.config["training.eval_interval"] == 0:
                 self.run_eval(val_loader)

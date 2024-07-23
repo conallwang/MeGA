@@ -21,7 +21,7 @@ training.step:
 - 
 training.visual_interval: 200
 training.eval_interval: 5000
-training.epochs: 100
+training.epochs: 80
 training.pretrained_checkpoint_path: null
 training.pe: 'LPE'
 training.pe.num_freqs: 8
@@ -33,7 +33,6 @@ training.lambda_update_list:
 # general
 training.lambda_rgb: 1.0
 training.lambda_ssim: 0.2
-training.lambda_lpips: 0.0
 
 # hair
 training.lambda_rgb.hair: 1.0
@@ -63,19 +62,15 @@ training.depth_thres: 5
 
 # Stages Control
 training.stages:
-- hair
 - head
 - joint
 training.stages_epoch:
-- 20
-- 70
-training.hair_stage_loss:
-- hair
+- 50
 training.head_stage_loss:
 - head
 training.joint_stage_loss:
 - hair
-- general
+- joint
 
 # FLAME
 flame.optimize_params: True
@@ -101,7 +96,7 @@ flame.offsets_ignore_parts:
 flame.xyz_cond: False
 
 # Gaussian
-gs.pretrain: null
+gs.pretrain: '/home/exp/conallwang_works/checkpoints/MeGA/0719/train_306_b8_MeGA_neutralhair/checkpoint_reset.pth'
 gs.sh_degree: 3
 gs.init_pts: "/home/exp/conallwang_works/nersemble/preprocess/306/init_pts_150000.npy"
 gs.percent_dense: 0.002

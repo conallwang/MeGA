@@ -115,8 +115,7 @@ def train():
     train_loader, val_loader, radius, all_flame_params = get_dataset(logger, config["datatype"])
 
     Trainer = HairTrainer if config["pipe.neutral_hair"] else JointTrainer
-    trainer = Trainer(config, logger, radius)
-    trainer.init_all_flame_params(all_flame_params)
+    trainer = Trainer(config, logger, radius, all_flame_params=all_flame_params)
     trainer.train(train_loader, val_loader, show_time=args.time)
 
 
