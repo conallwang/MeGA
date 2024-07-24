@@ -46,7 +46,7 @@ training.lambda_normal.head: 2.0
 training.lambda_mesh.laplacian: 150.0
 training.lambda_mesh.normal: 0.1
 training.lambda_mesh.edges: 300.0
-training.lambda_mesh.verts_scale: 0.0
+training.lambda_mesh.verts_scale: 10.0
 
 training.depth_thres: 5
 

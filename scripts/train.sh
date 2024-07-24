@@ -2,10 +2,10 @@
 
 export CUDA_VISIBLE_DEVICES=2
 
-WORKSPACE='/home/exp/conallwang_works/checkpoints/MeGA/0719/'
-VERSION=train_306_b16_MeGA
+WORKSPACE='/home/exp/conallwang_works/checkpoints/MeGA/0724/'
+VERSION=train_306_b8_MeGA_hair
 
-DEFAULT_PARAMS=./configs/nersemble/306/full.yaml
+DEFAULT_PARAMS=./configs/nersemble/306/hair.yaml
 
 python train.py \
     --config_path $DEFAULT_PARAMS \
