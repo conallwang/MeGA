@@ -32,9 +32,9 @@ parser.add_argument("--time", action="store_true", help="evaluate time when set 
 
 args = parser.parse_args()
 
-fix_expr = args.fix_expr_id > -1
+free_view = args.free_view
 given_num = args.num_frames > 0
-assert not (fix_expr ^ given_num), "Fix expression and number of frames need to be set simultaneously"
+assert not (free_view ^ given_num), "Free view and number of frames need to be set simultaneously"
 
 update_list = [
     "data.canonical_flame_path",
@@ -50,21 +50,6 @@ dir_name = os.path.dirname(args.checkpoint)
 config_path = os.path.join(dir_name, "params.yaml")
 with open(config_path, "r") as f:
     config = yaml.safe_load(f)
-
-# make sure params.yaml in the same directory with checkpoint
-if args.hair is not None:
-    sourcedir_name = os.path.dirname(args.hair)
-    config_path = os.path.join(sourcedir_name, "params.yaml")
-    with open(config_path, "r") as f:
-        src_config = yaml.safe_load(f)
-
-    for k, v in src_config.items():
-        if k in update_list:
-            config[k] = v
-
-    config["hair.shape_params"] = opt_shape_params = np.load(os.path.join(sourcedir_name, "flame_params.npz"))["shape"]
-# Uncomment to disable hair non-rigid alignment.
-# config["hair.shape_params"] = None
 
 config["training.pretrained_checkpoint_path"] = args.checkpoint
 config["local_workspace"] = dir_name

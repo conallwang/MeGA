@@ -391,7 +391,6 @@ class HairTrainer:
         # ablation options
         gsdepth = self.config.get("ab.gsdepth", False)
         hardblend = self.config.get("ab.hardblend", False)
-        usemorph = self.config.get("training.usemorph", False)
 
         has_face = rasterized_face is not None
         has_hair = rasterized_hair is not None
@@ -442,13 +441,6 @@ class HairTrainer:
 
             # TRY: different ways to use hair mask
             if is_val:
-                processed_hair_mask = self.compare_depth(rasterized_hair["near_z2"], head_depth)
-                processed_hair_mask = erosion(processed_hair_mask.unsqueeze(1), torch.ones(3, 3).cuda())
-                processed_hair_mask = dilation(processed_hair_mask, torch.ones(3, 3).cuda())
-                processed_hair_mask = dilation(processed_hair_mask, torch.ones(5, 5).cuda())
-                processed_hair_mask = erosion(processed_hair_mask, torch.ones(5, 5).cuda())
-                processed_hair_mask = processed_hair_mask[:, 0]
-            elif usemorph:
                 processed_hair_mask = erosion(hair_mask.unsqueeze(1), torch.ones(3, 3).cuda())
                 processed_hair_mask = dilation(processed_hair_mask, torch.ones(3, 3).cuda())
                 processed_hair_mask = dilation(processed_hair_mask, torch.ones(5, 5).cuda())
@@ -456,8 +448,6 @@ class HairTrainer:
                 processed_hair_mask = processed_hair_mask[:, 0]
             else:
                 processed_hair_mask = hair_mask
-
-            # processed_hair_mask = hair_mask
 
             if hardblend:
                 outputs["raster_hairmask"] = processed_hair_mask
@@ -498,14 +488,6 @@ class HairTrainer:
         # cv2.imwrite('test_rasthead.png', outputs['raster_headmask'][0, ..., None].detach().cpu().numpy() * 255)
 
         return outputs
-
-    def transform(self, pts, R, t):
-        translation = deepcopy(t)
-        if len(translation.shape) == 2:
-            translation = translation[:, None]
-        R_inv = R.transpose(1, 2)
-
-        return pts.bmm(R_inv) + translation
 
     def network_forward(self, is_val=False):
         rasterized_hair, rasterized_face = None, None
@@ -717,8 +699,6 @@ class HairTrainer:
         # loss logging
         for key, value in self.val_losses.items():
             value.update(loss_dict[key].item(), n=B)
-
-        # TODO: 如果需要，可以将一些渲染结果存在visualization_dict中，然后用tb_writer保存一些结果图用于可视化
 
     def compute_metrics(self, outputs):
         if outputs["fullmask"] is None:

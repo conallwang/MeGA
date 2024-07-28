@@ -1,8 +1,8 @@
 #!/bin/bash
 
-export CUDA_VISIBLE_DEVICES=2
+export CUDA_VISIBLE_DEVICES=0
 
-WORKSPACE='/home/exp/conallwang_works/checkpoints/MeGA/0724/'
+WORKSPACE='/path/to/checkpoints/MeGA/0728/'
 VERSION=train_306_b8_MeGA_hair
 
 DEFAULT_PARAMS=./configs/nersemble/306/hair.yaml

@@ -50,7 +50,7 @@ gs.position_lr_delay_mult: 0.01
 gs.position_lr_final: 1.6e-06
 gs.position_lr_init: 0.00016
 gs.position_lr_max_steps: 30000
-gs.pretrain: /home/exp/conallwang_works/checkpoints/MeGA/0719/train_306_b8_MeGA_neutralhair/checkpoint_reset.pth
+gs.pretrain: /home/exp/conallwang_works/checkpoints/MeGA/0724/train_306_b8_MeGA_hair/checkpoint_reset.pth
 gs.rotation_lr: 0.001
 gs.scaling_lr: 0.005
 gs.sh_degree: 3
@@ -64,7 +64,7 @@ pipe.neutral_hair: false
 training.depth_thres: 5
 training.enable_densify: true
 training.enc.mode: texture
-training.epochs: 80
+training.epochs: 100
 training.eval_interval: 5000
 training.gpus: '0'
 training.head_stage_loss:
@@ -108,5 +108,4 @@ training.step:
 - null
 training.tex_ch: 12
 training.tex_size: 1024
-training.usemorph: false
 training.visual_interval: 200

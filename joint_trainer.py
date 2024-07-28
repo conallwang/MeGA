@@ -2,14 +2,10 @@ import os
 from copy import deepcopy
 
 import cv2
-import lpips
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from kornia.morphology import dilation, erosion
-from pytorch3d.loss import chamfer_distance, mesh_laplacian_smoothing, mesh_normal_consistency
-from pytorch3d.structures import Meshes
 
 from dataset.cameras import Camera
 from networks.gshair.hairwrapper import GSHairWrapper
@@ -18,20 +14,11 @@ from utils import (
     AverageMeter,
     CUDA_Timer,
     color_mask,
-    depth_map2normals,
     directory,
-    edge_loss,
-    estimate_rigid,
-    full_aiap_loss,
     img2mask,
-    params_with_lr,
-    render_list,
     restore_model,
     ssim,
     update_lambda,
-    visimg,
-    visPositionMap,
-    write_obj,
 )
 
 
@@ -542,16 +529,8 @@ class JointTrainer:
                 processed_hair_mask = dilation(processed_hair_mask, torch.ones(5, 5).cuda())
                 processed_hair_mask = erosion(processed_hair_mask, torch.ones(5, 5).cuda())
                 processed_hair_mask = processed_hair_mask[:, 0]
-            elif usemorph:
-                processed_hair_mask = erosion(hair_mask.unsqueeze(1), torch.ones(3, 3).cuda())
-                processed_hair_mask = dilation(processed_hair_mask, torch.ones(3, 3).cuda())
-                processed_hair_mask = dilation(processed_hair_mask, torch.ones(5, 5).cuda())
-                processed_hair_mask = erosion(processed_hair_mask, torch.ones(5, 5).cuda())
-                processed_hair_mask = processed_hair_mask[:, 0]
             else:
                 processed_hair_mask = hair_mask
-
-            # processed_hair_mask = hair_mask
 
             if hardblend:
                 outputs["raster_hairmask"] = processed_hair_mask
@@ -586,6 +565,7 @@ class JointTrainer:
         outputs["raster_hairmask"] = None if "raster_hairmask" not in outputs else outputs["raster_hairmask"]
         outputs["raster_headmask"] = None if "raster_headmask" not in outputs else outputs["raster_headmask"]
         outputs["fullmask"] = None if "fullmask" not in outputs else outputs["fullmask"]
+
         #   DEBUG
         # cv2.imwrite('test_rasthair.png', outputs['raster_hairmask'][0, ..., None].detach().cpu().numpy() * 255)
         # cv2.imwrite('test_rasthead.png', outputs['raster_headmask'][0, ..., None].detach().cpu().numpy() * 255)
@@ -874,8 +854,6 @@ class JointTrainer:
         # loss logging
         for key, value in self.val_losses.items():
             value.update(loss_dict[key].item(), n=B)
-
-        # TODO: 如果需要，可以将一些渲染结果存在visualization_dict中，然后用tb_writer保存一些结果图用于可视化
 
     def compute_metrics(self, outputs):
         if outputs["fullmask"] is None:

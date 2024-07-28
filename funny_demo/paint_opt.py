@@ -31,7 +31,7 @@ parser.add_argument("--pti", action="store_true")
 parser.add_argument("--lr", type=float, default=0.01)
 parser.add_argument("--version", type=str, default="painting")
 parser.add_argument("--split", type=str, default="painting")
-parser.add_argument("--ratio", type=float, default=1.0)
+parser.add_argument("--lambda_s", type=float, default=1.0)
 
 args = parser.parse_args()
 
@@ -197,7 +197,7 @@ def painting(trainer, painting_loader, logger, save_stage=None):
                 loss_skin = torch.linalg.norm(
                     render_head[painting_mask_out] - gt_head[painting_mask_out], dim=-1
                 ).mean()
-            loss = loss_painting + args.ratio * loss_skin
+            loss = loss_painting + args.lambda_s * loss_skin
 
             # 4. update params
             trainer.optimizer.zero_grad(set_to_none=True)

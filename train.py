@@ -12,7 +12,6 @@ import yaml
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from dataset.dome import DomeData
 from dataset.nersemble import NeRSembleData
 from joint_trainer import JointTrainer
 from hair_trainer import HairTrainer
@@ -50,7 +49,7 @@ torch.cuda.set_device(0)
 
 
 def get_dataset(logger, datatype="nersemble"):
-    data_dict = {"nersemble": NeRSembleData, "dome": DomeData}
+    data_dict = {"nersemble": NeRSembleData}
     assert datatype in data_dict.keys(), "Not Supported Datatype: {}".format(datatype)
     Data = data_dict[datatype]
 
