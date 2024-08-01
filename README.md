@@ -8,11 +8,20 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 
 ## :mega: Updates
 
-[30/7/2024] Release the codes, data, and one pretrained model!
+[01/8/2024] Release the codes.
 
 [06/5/2024] Add more results to the project page.
 
 [28/4/2024] The official repo is initialized.
+
+## TODO
+
+- [x] Release the project page
+- [x] Add more results to the project page
+- [x] Release the codes
+- [ ] Release the data and Subject 306's pretrained model.
+- [ ] Release more pretrained models (Subject 218 and 304)
+- [ ] Improve the performance and try to support more editing applications
 
 ## Abstract
 
@@ -40,7 +49,7 @@ conda activate mega
 
 ### Data
 
-We use the same 9 subjects from NeRSemble dataset as GaussianAvatars in our experiments. Based on their provided data, we additionally generate depth maps and face parsing results. All pre-processed data is provided [here](insert). 
+We use the same 9 subjects from NeRSemble dataset as GaussianAvatars in our experiments. Based on their provided data, we additionally generate depth maps and face parsing results. All pre-processed data is provided [here](insert) (will be released soon). 
 
 Whether you want to train or test our methods, you need to download the data and decompress it into somewhere, e.g., /path/to/nersemble
 
@@ -68,16 +77,23 @@ cd /path/to/MeGA
 bash ./scripts/train_full.sh
 ```
 
+The reconstructed avatar will be like:
+
+<p align="center">
+<img src="assets/recon.gif" height="300"/>
+</p>
+
 ### Testing (Including computing metrics)
 
 If you want to only render images in the test dataset and valid dataset or compute metrics, you can run
 ```shell
-
 cd /path/to/MeGA
 bash ./scripts/metrics.sh
 ```
 
 The script will render images first and then compute metrics automaticly.
+
+
 
 ### Funny editting
 
@@ -103,21 +119,33 @@ cd /path/to/MeGA
 bash ./scripts/paint.sh
 ```
 
-This process will take some time (not long) to optimize.
+This process will take some time (several minutes) to optimize.
 
+### Render videos using pre-trained models
+
+We take the painted avatar above as an example. The painted avatar will be saved in somewhere like '/path/to/checkpoints/MeGA/0801/train_306_b16_MeGA/duola', and you can further render sequences using painted avatars:
+```shell
+cd /path/to/MeGA
+bash ./scripts/render.sh
+```
+
+The results will be saved in somewhere like '/path/to/checkpoints/MeGA/0801/train_306_b16_MeGA/duola/exp3_eval'. If you want a video result, please execute './scripts/img2video.sh' (using ffmpeg).
+```shell
+cd /path/to/MeGA
+bash ./scripts/img2video.sh /path/to/checkpoints/MeGA/0801/train_306_b16_MeGA/duola/exp3_eval/renders
+```
+
+The video can be generated in '/path/to/checkpoints/MeGA/0801/train_306_b16_MeGA/duola/exp3_eval/output.mp4'.
+
+The editing results are like:
+
+<p align="center">
+<img src="assets/edit.gif" height="300"/>
+</p>
 
 ### Pretrained Model
 
-We provide our pretrained models [here](insert). 
-
-
-## TODO
-
-- [x] Release the project page
-- [x] Add more results to the project page
-- [x] Release the codes, data, and one pretrained model
-- [ ] Release more pretrained models (Subject 218 and 304)
-- [ ] Improve the performance and try to support more editing applications
+We provide our pretrained models [here](insert) (will be released later). 
 
 ## Citation
 

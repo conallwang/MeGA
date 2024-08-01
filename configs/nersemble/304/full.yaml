@@ -1,8 +1,8 @@
 # Data
-data.root: '/apdcephfs_cq2/share_1467498/datasets/nersemble/preprocess/304/UNION10_304_EMO1234EXP234589_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine'
-data.canonical_flame_path: '/apdcephfs_cq2/share_1467498/datasets/nersemble/preprocess/304/304_EXP-2_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine/flame_param/00000.npz'
+data.root: '/path/to/nersemble/preprocess/304/UNION10_304_EMO1234EXP234589_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine'
+data.canonical_flame_path: '/path/to/nersemble/preprocess/304/304_EXP-2_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine/flame_param/00000.npz'
 data.per_gpu_batch_size: 16
-data.num_workers: 8
+data.num_workers: 16
 data.load_images: False
 data.img_w: 550
 data.img_h: 802
@@ -10,8 +10,9 @@ data.img_h: 802
 # Training
 training.enc.mode: texture
 training.enable_densify: True
+training.neural_texture: True
 training.tex_size: 1024
-training.tex_ch: 4
+training.tex_ch: 12
 
 training.gpus: "0"
 training.learning_rate: 0.001
@@ -20,7 +21,7 @@ training.step:
 training.visual_interval: 200
 training.eval_interval: 5000
 training.epochs: 100
-training.pretrained_checkpoint_path: '/apdcephfs/share_1467498/home/conallwang/checkpoints/DWG/0301/train_304_b16_DWG_full/checkpoint_head_it89082.pth'
+training.pretrained_checkpoint_path: null
 training.pe: 'LPE'
 training.pe.num_freqs: 8
 training.pe.log_sampling: True
@@ -31,7 +32,6 @@ training.lambda_update_list:
 # general
 training.lambda_rgb: 1.0
 training.lambda_ssim: 0.2
-training.lambda_lpips: 0.0
 
 # hair
 training.lambda_rgb.hair: 1.0
@@ -51,7 +51,7 @@ training.lambda_depth.head: 1.0
 training.lambda_normal.head: 2.0
 training.lambda_mesh.laplacian: 50.0
 training.lambda_mesh.normal: 0.1
-training.lambda_mesh.edges: 100.0
+training.lambda_mesh.edges: 500.0
 training.lambda_mesh.verts_scale: 1.0
 
 training.depth_thres: 5
@@ -59,29 +59,25 @@ training.depth_thres: 5
 # Stages Control
 training.stages:
 - head
-- hair
+- joint
 training.stages_epoch:
 - 50
-training.head_geo_stage_loss:
-- head_geo
 training.head_stage_loss:
 - head
-training.hair_stage_loss:
+training.joint_stage_loss:
 - hair
-- general
-training.full_stage_loss:
-- head
-- hair
-- general
+- joint
 
 # FLAME
+flame.optimize_params: True
+
 flame.subdivision: 1
 flame.subdivision.mouth: 0
 flame.add_teeth: True
-flame.model_path: "/apdcephfs_cq3/share_1467498/datasets/face-data/H3Avatar/flame2023/flame2023.pkl"
-flame.lmk_embedding_path: "/apdcephfs_cq3/share_1467498/datasets/face-data/H3Avatar/flame2023/landmark_embedding_with_eyes.npy"
-flame.parts_path: "/apdcephfs_cq3/share_1467498/datasets/face-data/H3Avatar/flame/FLAME_masks_mouth.pkl"
-flame.ignore_faces: "/apdcephfs_cq3/share_1467498/datasets/face-data/H3Avatar/flame/lower_neck_bottom_face_idcs.npy"
+flame.model_path: "/path/to/face-data/flame2023/flame2023.pkl"
+flame.lmk_embedding_path: "/path/to/face-data/flame2023/landmark_embedding_with_eyes.npy"
+flame.parts_path: "/path/to/face-data/flame/FLAME_masks_mouth.pkl"
+flame.ignore_faces: "/path/to/face-data/flame/lower_neck_bottom_face_idcs.npy"
 flame.n_shape: 300
 flame.n_expr: 100
 flame.n_pose: 15  # full pose
@@ -96,9 +92,9 @@ flame.offsets_ignore_parts:
 flame.xyz_cond: False
 
 # Gaussian
-gs.pretrain: '/apdcephfs/share_1467498/home/conallwang/checkpoints/DWG/0301/train_304_b16_DWG_neutral_hair/checkpoint_reset.pth'
+gs.pretrain: '/path/to/checkpoints/MeGA/0801/train_304_b8_MeGA_hair/checkpoint_reset.pth'
 gs.sh_degree: 3
-gs.init_pts: "/apdcephfs_cq2/share_1467498/datasets/nersemble/preprocess/304/init_pts_150000.npy"
+gs.init_pts: "/path/to/nersemble/preprocess/304/init_pts_150000.npy"
 gs.percent_dense: 0.002
 gs.position_lr_init: 0.00016
 gs.position_lr_final: 0.0000016
@@ -140,5 +136,4 @@ gs.K: 8
 pipe.convert_SHs_python: False
 pipe.compute_cov3D_python: False
 pipe.debug: False
-pipe.hardfuse: False
 pipe.neutral_hair: False

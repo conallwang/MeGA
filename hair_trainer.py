@@ -79,7 +79,10 @@ class HairTrainer:
             # load optimized flame params
             dir_name = os.path.dirname(checkpoint_path)
             opt_flame_params = np.load(os.path.join(dir_name, "flame_params.npz"))
-            self.load_all_flame_params(opt_flame_params)
+            if not self.is_val:
+                self.load_all_flame_params(opt_flame_params)
+            else:
+                self.all_flame_params["shape"].data = torch.from_numpy(opt_flame_params["shape"]).cuda()
 
             if stage is not None:
                 self.stage = stage

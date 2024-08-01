@@ -87,7 +87,7 @@ class NeRSembleData(Dataset):
         path = imgpath.replace("images", "depths").replace("{}.png".format(basename) if painting else ".png", ".npz")
         depth_map = sparse.load_npz(path).todense()
         depth_map = cv2.resize(depth_map, (self.img_w, self.img_h), interpolation=cv2.INTER_LINEAR)
-        depth_map = depth_map * 1000  # 转换单位为 mm
+        depth_map = depth_map * 1000  # convert to mm
         sample["depth_map"] = depth_map
 
         # load parsing results

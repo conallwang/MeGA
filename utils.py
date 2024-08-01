@@ -129,11 +129,6 @@ def render(cfg, viewpoint_camera, pc: GaussianModel, bg_color, scaling_modifier=
         cov3D_precomp=cov3D_precomp,
         depth_scale_factor=1000.0,
     )
-    #   DEBUG: Visualization
-    # cv2.imwrite('test_hair.png', rendered_image.permute((1, 2, 0)).detach().cpu().numpy() * 255)
-    # visDepthMap('test_depth.png', depth[0].detach().cpu().numpy())
-    # visDepthMap('test_near_z.png', near_z[0].detach().cpu().numpy())
-    # visDepthMap('test_alpha.png', alpha[0].detach().cpu().numpy())
 
     # Those Gaussians that were frustum culled or had a radius of 0 were not visible.
     # They will be excluded from value updates used in the splitting criteria.
@@ -330,8 +325,6 @@ def visDepthMap(savepath, depth_map):
     normalized = (depth_map - mmin) / (mmax - mmin)
     normalized[normalized < 0] = 1
     cv2.imwrite(savepath, (1 - normalized) * 255)
-    # screen_normal = depth_map2normals(depth_map)
-    # cv2.imwrite(savepath, (screen_normal.detach().cpu().numpy()[0, ..., ::-1] + 1) / 2 * 255)
 
 
 def write_obj(filepath, verts, tris=None, log=True):

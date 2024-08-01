@@ -2,10 +2,10 @@
 
 export CUDA_VISIBLE_DEVICES=0
 
-HEAD_CKPT_PATH="/path/to/checkpoints/MeGA/0728/train_218_b16_MeGA/checkpoint_latest.pth"
-HAIR_CKPT_PATH="/path/to/checkpoints/MeGA/0728/train_306_b16_MeGA/checkpoint_latest.pth"
-MOTIONFILE="/path/to/nersemble/preprocess/218/218_EMO-1_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine/transforms_val.json"
-NAME="emo1_218hair"
+HEAD_CKPT_PATH="/path/to/checkpoints/MeGA/0801/train_218_b16_MeGA/checkpoint_latest.pth"
+HAIR_CKPT_PATH="/path/to/checkpoints/MeGA/0801/train_306_b16_MeGA/checkpoint_latest.pth"
+MOTIONFILE="/path/to/nersemble/preprocess/218/218_EXP-2_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine/transforms_val.json"
+NAME="exp2_306hair"
 
 # Command Line Arguments for render_funny.py
 

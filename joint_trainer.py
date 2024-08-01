@@ -83,7 +83,10 @@ class JointTrainer:
             # load optimized flame params
             dir_name = os.path.dirname(checkpoint_path)
             opt_flame_params = np.load(os.path.join(dir_name, "flame_params.npz"))
-            self.load_all_flame_params(opt_flame_params)
+            if not self.is_val:
+                self.load_all_flame_params(opt_flame_params)
+            else:
+                self.all_flame_params["shape"].data = torch.from_numpy(opt_flame_params["shape"]).cuda()
 
             if stage is not None:
                 self.stage = stage
@@ -175,8 +178,8 @@ class JointTrainer:
 
         # uv --> mesh vertices, barycentric
         # TODO: external settings
-        self.uv2verts_ids = np.load("/home/exp/conallwang_works/face-data/H3Avatar/unwrap_uv_idx_v_idx.npy")
-        self.uv2verts_bw = np.load("/home/exp/conallwang_works/face-data/H3Avatar/unwrap_uv_idx_bw.npy")
+        self.uv2verts_ids = np.load("/path/to/face-data/unwrap_uv_idx_v_idx.npy")
+        self.uv2verts_bw = np.load("/path/to/face-data/unwrap_uv_idx_bw.npy")
 
     def _init_losses(self):
         # TODO: check unuseful losses
