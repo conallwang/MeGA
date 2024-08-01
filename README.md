@@ -8,7 +8,7 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 
 ## :mega: Updates
 
-[01/8/2024] Release the codes.
+[01/8/2024] The Codes has been released!
 
 [06/5/2024] Add more results to the project page.
 
