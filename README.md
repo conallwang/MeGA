@@ -29,7 +29,8 @@ Creating high-fidelity head avatars from multi-view videos is a core issue for m
 
 ## Pipeline
 
-![pipeline_git](https://github.com/user-attachments/assets/19aa1b46-c740-4cba-838c-4d04d56cb504)
+![pipeline_git](https://github.com/user-attachments/assets/461d5f5a-5451-407d-928c-5310478e855d)
+
 
 ## Setup
 
@@ -75,10 +76,6 @@ cd /path/to/MeGA
 bash ./scripts/train_full.sh
 ```
 
-The reconstructed avatar will be like:
-
-![recon](https://github.com/user-attachments/assets/ff3b964c-83d0-4a07-9a6b-31bee857cd0c)
-
 ### Testing (Including computing metrics)
 
 If you want to only render images in the test dataset and valid dataset or compute metrics, you can run
@@ -88,8 +85,6 @@ bash ./scripts/metrics.sh
 ```
 
 The script will render images first and then compute metrics automaticly.
-
-![edit](https://github.com/user-attachments/assets/d5c758f9-175e-4a9a-99e2-591cf12822db)
 
 
 ### Funny editting
@@ -133,9 +128,6 @@ bash ./scripts/img2video.sh /path/to/checkpoints/MeGA/0801/train_306_b16_MeGA/du
 ```
 
 The video can be generated in '/path/to/checkpoints/MeGA/0801/train_306_b16_MeGA/duola/exp3_eval/output.mp4'.
-
-The editing results are like:
-
 
 
 ### Pretrained Model
