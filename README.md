@@ -29,9 +29,7 @@ Creating high-fidelity head avatars from multi-view videos is a core issue for m
 
 ## Pipeline
 
-<p align="center">
-<img src="assets/pipeline_git.png" width="800"/>
-</p>
+![pipeline_git](https://github.com/user-attachments/assets/19aa1b46-c740-4cba-838c-4d04d56cb504)
 
 ## Setup
 
@@ -79,9 +77,7 @@ bash ./scripts/train_full.sh
 
 The reconstructed avatar will be like:
 
-<p align="center">
-<img src="assets/recon.gif" height="300"/>
-</p>
+![recon](https://github.com/user-attachments/assets/ff3b964c-83d0-4a07-9a6b-31bee857cd0c)
 
 ### Testing (Including computing metrics)
 
@@ -93,6 +89,7 @@ bash ./scripts/metrics.sh
 
 The script will render images first and then compute metrics automaticly.
 
+![edit](https://github.com/user-attachments/assets/d5c758f9-175e-4a9a-99e2-591cf12822db)
 
 
 ### Funny editting
@@ -139,9 +136,7 @@ The video can be generated in '/path/to/checkpoints/MeGA/0801/train_306_b16_MeGA
 
 The editing results are like:
 
-<p align="center">
-<img src="assets/edit.gif" height="300"/>
-</p>
+
 
 ### Pretrained Model
 
