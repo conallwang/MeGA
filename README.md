@@ -8,6 +8,8 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 
 ## :mega: Updates
 
+[07/8/2024] The data and pretrained models of Subject 306 have been released [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing)!
+
 [01/8/2024] The Codes has been released!
 
 [06/5/2024] Add more results to the project page.
@@ -19,8 +21,8 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 - [x] Release the project page
 - [x] Add more results to the project page
 - [x] Release the codes
-- [ ] Release the data and Subject 306's pretrained model.
-- [ ] Release more pretrained models (Subject 218 and 304)
+- [x] Release the data and Subject 306's pretrained model.
+- [ ] Release more data & pretrained models (Subject 218 and 304), if we find more free cloud storage ~
 - [ ] Improve the performance and try to support more editing applications
 
 ## Abstract
@@ -48,7 +50,7 @@ conda activate mega
 
 ### Data
 
-We use the same 9 subjects from NeRSemble dataset as GaussianAvatars in our experiments. Based on their provided data, we additionally generate depth maps and face parsing results. All pre-processed data is provided [here](insert) (will be released soon). 
+We use the same 9 subjects from NeRSemble dataset as GaussianAvatars in our experiments. Based on their provided data, we additionally generate depth maps and face parsing results. All pre-processed data is provided [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing). 
 
 Whether you want to train or test our methods, you need to download the data and decompress it into somewhere, e.g., /path/to/nersemble
 
@@ -132,7 +134,7 @@ The video can be generated in '/path/to/checkpoints/MeGA/0801/train_306_b16_MeGA
 
 ### Pretrained Model
 
-We provide our pretrained models [here](insert) (will be released later). 
+We provide our pretrained models [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing). 
 
 ## Citation
 
