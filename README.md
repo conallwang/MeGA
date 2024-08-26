@@ -24,8 +24,8 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 - [x] Add more results to the project page
 - [x] Release the codes
 - [x] Release the data and Subject 306's pretrained model.
-- [ ] 
-- [ ] Release more data & pretrained models (Subject 218 and 304), if we find more free cloud storage ~
+- [x] Upload the data of Subject 218.
+- [ ] Upload more data of other subjects.
 - [ ] Improve the performance and try to support more editing applications
 
 ## Abstract
