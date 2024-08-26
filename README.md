@@ -8,6 +8,8 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 
 ## :mega: Updates
 
+[26/8/2024] More processed data will be updated continuously with [this link](https://drive.google.com/drive/folders/1xB6TgxwAxEl-lzjEuhr6cK6-2Meyf12Q?usp=sharing).
+
 [07/8/2024] The data and pretrained models of Subject 306 have been released [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing)!
 
 [01/8/2024] The Codes has been released!
@@ -22,6 +24,7 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 - [x] Add more results to the project page
 - [x] Release the codes
 - [x] Release the data and Subject 306's pretrained model.
+- [ ] 
 - [ ] Release more data & pretrained models (Subject 218 and 304), if we find more free cloud storage ~
 - [ ] Improve the performance and try to support more editing applications
 
@@ -48,11 +51,13 @@ conda activate mega
 ./create_env.sh
 ```
 
-### Data
+### Data & Pretrained models
 
-We use the same 9 subjects from NeRSemble dataset as GaussianAvatars in our experiments. Based on their provided data, we additionally generate depth maps and face parsing results. All pre-processed data is provided [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing). 
+We use the same 9 subjects from NeRSemble dataset as GaussianAvatars in our experiments. Based on their provided data, we additionally generate depth maps and face parsing results. All pre-processed data and models that are used to reproduce the results of Subject 306 are provided [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing).
 
 Whether you want to train or test our methods, you need to download the data and decompress it into somewhere, e.g., /path/to/nersemble
+
+For more subjects' results, please download our preprocessed data from [here](https://drive.google.com/drive/folders/1xB6TgxwAxEl-lzjEuhr6cK6-2Meyf12Q?usp=sharing) **(updated continuously)**. 
 
 ### Training
 
@@ -130,11 +135,6 @@ bash ./scripts/img2video.sh /path/to/checkpoints/MeGA/0801/train_306_b16_MeGA/du
 ```
 
 The video can be generated in '/path/to/checkpoints/MeGA/0801/train_306_b16_MeGA/duola/exp3_eval/output.mp4'.
-
-
-### Pretrained Model
-
-We provide our pretrained models [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing). 
 
 ## Citation
 
