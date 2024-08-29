@@ -8,6 +8,8 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 
 ## :mega: Updates
 
+[29/8/2024] Upload the data of Subject 218 and 304.
+
 [26/8/2024] More processed data will be updated continuously with [this link](https://drive.google.com/drive/folders/1xB6TgxwAxEl-lzjEuhr6cK6-2Meyf12Q?usp=sharing).
 
 [07/8/2024] The data and pretrained models of Subject 306 have been released [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing)!
