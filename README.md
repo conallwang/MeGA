@@ -6,11 +6,13 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 <a href="https://conallwang.github.io/MeGA_Pages/"><img src="https://img.shields.io/badge/Project-Page-blue"></a>
 </p>
 
+![teaser](./assets/git_demo.gif)
+
 ## :mega: Updates
 
-[29/8/2024] Upload the data of Subject 218 and 304.
 
-[26/8/2024] More processed data will be updated continuously with [this link](https://drive.google.com/drive/folders/1xB6TgxwAxEl-lzjEuhr6cK6-2Meyf12Q?usp=sharing).
+
+[07/12/2024] All data of other subjects are released [here](https://drive.google.com/drive/folders/1N7pzrTtwBKQ033SZG5kukpFvT2RqoLXg?usp=sharing). Thanks for [ZiXuan](https://scholar.google.com/citations?user=3i9GwyIAAAAJ) providing the cloud storage. 
 
 [07/8/2024] The data and pretrained models of Subject 306 have been released [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing)!
 
@@ -27,8 +29,8 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 - [x] Release the codes
 - [x] Release the data and Subject 306's pretrained model.
 - [x] Upload the data of Subject 218, 304.
-- [ ] Upload more data of other subjects.
-- [ ] Improve the performance and try to support more editing applications
+- [x] Upload all data of other subjects.
+- [ ] Update the codes to the latest version.
 
 ## Abstract
 
@@ -55,11 +57,11 @@ conda activate mega
 
 ### Data & Pretrained models
 
-We use the same 9 subjects from NeRSemble dataset as GaussianAvatars in our experiments. Based on their provided data, we additionally generate depth maps and face parsing results. All pre-processed data and models that are used to reproduce the results of Subject 306 are provided [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing).
+We use the same 9 subjects from NeRSemble dataset as GaussianAvatars in our experiments. Based on their provided data, we additionally generate depth maps and face parsing results. All pre-processed data and models that are used to reproduce the results of Subject 306 are provided [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing). 
 
-Whether you want to train or test our methods, you need to download the data and decompress it into somewhere, e.g., /path/to/nersemble
+> Whether you want to train or test our methods, you need to download the data and decompress it into somewhere, e.g., /path/to/nersemble
 
-For more subjects' results, please download our preprocessed data from [here](https://drive.google.com/drive/folders/1xB6TgxwAxEl-lzjEuhr6cK6-2Meyf12Q?usp=sharing) **(updated continuously)**. 
+For more subjects' data, please download from [here](https://drive.google.com/drive/folders/1N7pzrTtwBKQ033SZG5kukpFvT2RqoLXg?usp=sharing). 
 
 ### Training
 
