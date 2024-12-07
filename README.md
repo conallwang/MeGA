@@ -6,10 +6,11 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 <a href="https://conallwang.github.io/MeGA_Pages/"><img src="https://img.shields.io/badge/Project-Page-blue"></a>
 </p>
 
-![teaser](./assets/git_demo.gif)
+<p align="center">
+  <img src="./assets/git_demo.gif" />
+</p>
 
 ## :mega: Updates
-
 
 
 [07/12/2024] All data of other subjects are released [here](https://drive.google.com/drive/folders/1N7pzrTtwBKQ033SZG5kukpFvT2RqoLXg?usp=sharing). Thanks for [ZiXuan](https://scholar.google.com/citations?user=3i9GwyIAAAAJ) providing the cloud storage. 
@@ -31,10 +32,6 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 - [x] Upload the data of Subject 218, 304.
 - [x] Upload all data of other subjects.
 - [ ] Update the codes to the latest version.
-
-## Abstract
-
-Creating high-fidelity head avatars from multi-view videos is a core issue for many AR/VR applications. However, existing methods usually struggle to obtain high-quality renderings for all different head components simultaneously since they use one single representation to model components with drastically different characteristics (e.g., skin vs. hair). In this paper, we propose a Hybrid Mesh-Gaussian Head Avatar (MeGA) that models different head components with more suitable representations. Specifically, we select an enhanced FLAME mesh as our facial representation and predict a UV displacement map to provide per-vertex offsets for improved personalized geometric details. To achieve photorealistic renderings, we obtain facial colors using deferred neural rendering and disentangle neural textures into three meaningful parts. For hair modeling, we first build a static canonical hair using 3D Gaussian Splatting. A rigid transformation and an MLP-based deformation field are further applied to handle complex dynamic expressions. Combined with our occlusion-aware blending, MeGA generates higher-fidelity renderings for the whole head and naturally supports more downstream tasks. Experiments on the NeRSemble dataset demonstrate the effectiveness of our designs, outperforming previous state-of-the-art methods and supporting various editing functionalities, including hairstyle alteration and texture editing.
 
 ## Pipeline
 
