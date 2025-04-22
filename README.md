@@ -5,7 +5,7 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 <a href="https://arxiv.org/abs/2404.19026"><img src="https://img.shields.io/badge/Arxiv-2404.19026-B31B1B.svg"></a>
 <a href="https://conallwang.github.io/MeGA_Pages/"><img src="https://img.shields.io/badge/Project-Page-blue"></a>
 <a href="https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing"><img src="https://img.shields.io/badge/Models-Google_Drive-green"></a>
-<a href="https://conallwang.github.io/MeGA_Pages/"><img src="https://img.shields.io/badge/Dataset-Google_Drive-brightgreen"></a>
+<a href="https://drive.google.com/drive/folders/1N7pzrTtwBKQ033SZG5kukpFvT2RqoLXg?usp=sharing"><img src="https://img.shields.io/badge/Dataset-Google_Drive-brightgreen"></a>
 </p>
 
 <p align="center">
