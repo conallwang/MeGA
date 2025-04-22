@@ -51,6 +51,16 @@ config_path = os.path.join(dir_name, "params.yaml")
 with open(config_path, "r") as f:
     config = yaml.safe_load(f)
 
+if args.hair is not None:
+    sourcedir_name = os.path.dirname(args.hair)
+    config_path = os.path.join(sourcedir_name, "params.yaml")
+    with open(config_path, "r") as f:
+        src_config = yaml.safe_load(f)
+
+    for k, v in src_config.items():
+        if k in update_list:
+            config[k] = v
+
 config["training.pretrained_checkpoint_path"] = args.checkpoint
 config["local_workspace"] = dir_name
 config["data.load_images"] = False

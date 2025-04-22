@@ -3,8 +3,8 @@
 export CUDA_VISIBLE_DEVICES=0
 
 CKPT_PATH="/path/to/checkpoints/MeGA/0801/train_306_b16_MeGA/checkpoint_latest.pth"
-VERSION=duola
-SPLIT=duola
+VERSION=626
+SPLIT=626
 
 # Command Line Arguments for paint_opt.py
 # --checkpoint,         path of the trained models

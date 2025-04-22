@@ -3,7 +3,7 @@
 export CUDA_VISIBLE_DEVICES=0
 
 CKPT_PATH="/path/to/checkpoints/MeGA/0801/train_306_b16_MeGA/checkpoint_latest.pth"
-SPLIT="test"    # choose from ['test', 'val', 'train', 'onef']
+SPLIT="val"    # choose from ['test', 'val', 'train', 'onef']
 
 # Command Line Arguments for metrics.py
 # --checkpoint,         path of the trained models

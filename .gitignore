@@ -1,9 +1,5 @@
 .vscode
-taiji_task*
-tools
-tmp_res
-outputs
-create_taiji.sh
+face-data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -6,20 +6,12 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from kornia.morphology import dilation, erosion
+from kornia.filters import gaussian_blur2d
 
 from dataset.cameras import Camera
 from networks.gshair.hairwrapper import GSHairWrapper
 from networks.meshface.facewrapper import MeshFaceWrapper
-from utils import (
-    AverageMeter,
-    CUDA_Timer,
-    color_mask,
-    directory,
-    img2mask,
-    restore_model,
-    ssim,
-    update_lambda,
-)
+from utils import AverageMeter, CUDA_Timer, color_mask, directory, img2mask, restore_model, ssim, update_lambda, visimg
 
 
 class JointTrainer:
@@ -48,7 +40,9 @@ class JointTrainer:
         ) >= -1, (
             "[ERROR] The length of 'training.stages_epoch' should be larger than the length of 'training.stages' - 1."
         )
-        assert self.gs_pretrain is not None, "[ERROR] You need set 'gs.pretrain' to pretrained neutral hair ckpt."
+        assert (
+            self.gs_pretrain is not None or config["bald"]
+        ), "[ERROR] You need set 'gs.pretrain' to pretrained neutral hair ckpt."
 
         self.xyz_cond = config.get("flame.xyz_cond", False)
         self.move_eyes = config.get("flame.move_eyes", False)
@@ -527,6 +521,7 @@ class JointTrainer:
                     processed_hair_mask = hair_mask
                 else:
                     processed_hair_mask = self.compare_depth(rasterized_hair["near_z2"], head_depth)
+                # processed_hair_mask = hair_mask
                 processed_hair_mask = erosion(processed_hair_mask.unsqueeze(1), torch.ones(3, 3).cuda())
                 processed_hair_mask = dilation(processed_hair_mask, torch.ones(3, 3).cuda())
                 processed_hair_mask = dilation(processed_hair_mask, torch.ones(5, 5).cuda())
@@ -534,6 +529,10 @@ class JointTrainer:
                 processed_hair_mask = processed_hair_mask[:, 0]
             else:
                 processed_hair_mask = hair_mask
+
+            processed_hair_mask = gaussian_blur2d(
+                processed_hair_mask[:, None].float(), kernel_size=(5, 5), sigma=(1.5, 1.5)
+            )[:, 0]
 
             if hardblend:
                 outputs["raster_hairmask"] = processed_hair_mask
@@ -565,9 +564,14 @@ class JointTrainer:
         outputs["occlussion_mask"] = hair_mask if need_fusion else None  # no gradients
         outputs["head_geomap"] = rasterized_face["rgba"][..., :3] if has_face else None
 
-        outputs["raster_hairmask"] = None if "raster_hairmask" not in outputs else outputs["raster_hairmask"]
-        outputs["raster_headmask"] = None if "raster_headmask" not in outputs else outputs["raster_headmask"]
-        outputs["fullmask"] = None if "fullmask" not in outputs else outputs["fullmask"]
+        if not self.config["bald"]:
+            outputs["raster_hairmask"] = None if "raster_hairmask" not in outputs else outputs["raster_hairmask"]
+            outputs["raster_headmask"] = None if "raster_headmask" not in outputs else outputs["raster_headmask"]
+            outputs["fullmask"] = None if "fullmask" not in outputs else outputs["fullmask"]
+        else:
+            outputs["raster_hairmask"] = None
+            outputs["raster_headmask"] = None
+            outputs["fullmask"] = torch.clip(rasterized_face["valid_nograd"].float(), min=0.0, max=1.0)
 
         #   DEBUG
         # cv2.imwrite('test_rasthair.png', outputs['raster_hairmask'][0, ..., None].detach().cpu().numpy() * 255)

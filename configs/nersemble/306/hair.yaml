@@ -1,6 +1,6 @@
 # Data
-data.root: '/path/to/nersemble/preprocess/306/UNION10_306_EMO1234EXP234589_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine'
-data.canonical_flame_path: '/path/to/nersemble/preprocess/306/306_EMO-3_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine/flame_param/00000.npz'
+data.root: '/path/to/nersemble/306/UNION10_306_EMO1234EXP234589_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine'
+data.canonical_flame_path: '/path/to/nersemble/306/306_EMO-3_v16_DS2-0.5x_lmkSTAR_teethV3_SMOOTH_offsetS_whiteBg_maskBelowLine/flame_param/00000.npz'
 data.per_gpu_batch_size: 8
 data.num_workers: 8
 data.load_images: True
@@ -87,7 +87,7 @@ flame.xyz_cond: False
 # Gaussian
 gs.pretrain: null
 gs.sh_degree: 3
-gs.init_pts: "/path/to/nersemble/preprocess/306/init_pts_150000.npy"
+gs.init_pts: "/path/to/nersemble/306/init_pts_150000.npy"
 gs.percent_dense: 0.002
 gs.position_lr_init: 0.00016
 gs.position_lr_final: 0.0000016

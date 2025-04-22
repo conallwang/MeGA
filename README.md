@@ -1,9 +1,11 @@
-# MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity Rendering and Head Editing
-The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity Rendering and Head Editing](https://arxiv.org/abs/2404.19026)"
+# MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity Rendering and Head Editing (CVPR 2025)
+The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity Rendering and Head Editing](https://arxiv.org/abs/2404.19026)".
 
 <p align="center">
 <a href="https://arxiv.org/abs/2404.19026"><img src="https://img.shields.io/badge/Arxiv-2404.19026-B31B1B.svg"></a>
 <a href="https://conallwang.github.io/MeGA_Pages/"><img src="https://img.shields.io/badge/Project-Page-blue"></a>
+<a href="https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing"><img src="https://img.shields.io/badge/Models-Google_Drive-green"></a>
+<a href="https://conallwang.github.io/MeGA_Pages/"><img src="https://img.shields.io/badge/Dataset-Google_Drive-brightgreen"></a>
 </p>
 
 <p align="center">
@@ -12,16 +14,19 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 
 ## :mega: Updates
 
+[2025-04-15] CVPR version is updated. See u in Nashville!
 
-[07/12/2024] All data of other subjects are released [here](https://drive.google.com/drive/folders/1N7pzrTtwBKQ033SZG5kukpFvT2RqoLXg?usp=sharing). Thanks for [ZiXuan](https://scholar.google.com/citations?user=3i9GwyIAAAAJ) providing the cloud storage. 
+[2025-03-10] Temporarily hide the repo for updating, which will be finished soon.
 
-[07/8/2024] The data and pretrained models of Subject 306 have been released [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing)!
+[2024-12-07] All data of other subjects are released [here](https://drive.google.com/drive/folders/1N7pzrTtwBKQ033SZG5kukpFvT2RqoLXg?usp=sharing). Thanks for [ZiXuan](https://scholar.google.com/citations?user=3i9GwyIAAAAJ) providing the cloud storage. 
 
-[01/8/2024] The Codes has been released!
+[2024-08-07] The data and pretrained models of Subject 306 have been released [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing)!
 
-[06/5/2024] Add more results to the project page.
+[2024-08-01] The Codes has been released!
 
-[28/4/2024] The official repo is initialized.
+[2024-05-06] Add more results to the project page.
+
+[2024-04-28] The official repo is initialized.
 
 ## TODO
 
@@ -31,7 +36,7 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 - [x] Release the data and Subject 306's pretrained model.
 - [x] Upload the data of Subject 218, 304.
 - [x] Upload all data of other subjects.
-- [ ] Update the codes to the latest version.
+- [x] Update the codes to the latest version.
 
 ## Pipeline
 
@@ -54,7 +59,7 @@ conda activate mega
 
 ### Data & Pretrained models
 
-We use the same 9 subjects from NeRSemble dataset as GaussianAvatars in our experiments. Based on their provided data, we additionally generate depth maps and face parsing results. All pre-processed data and models that are used to reproduce the results of Subject 306 are provided [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing). 
+We use the same 9 subjects from NeRSemble dataset as [GaussianAvatars](https://github.com/ShenhanQian/GaussianAvatars) in our experiments. Based on their provided data, we additionally generate depth maps and face parsing results. All pre-processed data and models that are used to reproduce the results of Subject 306 are provided [here](https://drive.google.com/drive/folders/1R7fNJnWu6ZSqbIvpUWbAUfb5qdq2a8sp?usp=sharing). 
 
 > Whether you want to train or test our methods, you need to download the data and decompress it into somewhere, e.g., /path/to/nersemble
 
@@ -84,26 +89,30 @@ cd /path/to/MeGA
 bash ./scripts/train_full.sh
 ```
 
+> For brief, you can also use the command ```bash ./scripts/train.all.sh``` after you change all template paths mentioned above.
+
 ### Testing (Including computing metrics)
 
-If you want to only render images in the test dataset and valid dataset or compute metrics, you can run
+If you want to computer metrics for test/val dataset, you can run
 ```shell
 cd /path/to/MeGA
 bash ./scripts/metrics.sh
 ```
 
-The script will render images first and then compute metrics automaticly.
+The script will also render images and save them.
 
 
 ### Funny editting
 
-As mentioned in our paper, MeGA supports some human head editing. All related codes are in [./funny_demo](./funny_demo/).
+As mentioned in our paper, MeGA supports head editing. All related codes are in [./funny_demo](./funny_demo/).
 
 #### Hair alteration
 
 To perform hair alteration (e.g., alternate Subject 218's hair to 306's hair), you can run
 
 ```shell
+# remember changing template paths as before
+
 cd /path/to/MeGA
 bash ./scripts/alter_hair.sh
 ```
