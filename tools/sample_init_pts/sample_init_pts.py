@@ -34,7 +34,7 @@ def load_obj(filename):
 
 
 def write_obj(filepath, verts, tris=None, log=True):
-    """将mesh顶点与三角面片存储为.obj文件,方便查看
+    """save mesh obj
 
     Args:
         verts:      Vx3, vertices coordinates
