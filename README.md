@@ -14,7 +14,7 @@ The official repo for "[MeGA: Hybrid Mesh-Gaussian Head Avatar for High-Fidelity
 
 ## :mega: Updates
 
-[2025-04-15] CVPR version is updated. See u in Nashville!
+[2025-04-15] CVPR version has been updated. See u in Nashville!
 
 [2025-03-10] Temporarily hide the repo for updating, which will be finished soon.
 
